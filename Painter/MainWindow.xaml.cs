@@ -108,11 +108,20 @@ namespace Painter
             }
         }
 
-        private void ReattachCanvasEventHandlers(Canvas canvas)
+        private void attachCanvas(Canvas canvas)
         {
             canvas.MouseDown += Canvas_MouseDown;
             canvas.MouseMove += Canvas_MouseMove;
             canvas.MouseUp += Canvas_MouseUp;
+
+            foreach (var line in canvas.Children)
+            {
+                var l = line as Line;
+                if (l != null && l.Tag != null)
+                {
+                    canvasStraightLines.Add(l);
+                }
+            }
         }
 
         #region Canvas events
@@ -139,6 +148,7 @@ namespace Painter
                     {
                         straightLine = new Line();
                         straightLine.Stroke = new SolidColorBrush(toolColor);
+                        straightLine.Tag = "straightLine";
                         straightLine.StrokeThickness = toolSize;
                         straightLine.X1 = mouseDownPoint.X;
                         straightLine.Y1 = mouseDownPoint.Y;
@@ -396,7 +406,8 @@ namespace Painter
                     {
                         parent.Content = savedCanvas;
                         paintSurface = savedCanvas;
-                        ReattachCanvasEventHandlers(paintSurface);
+                        canvasStraightLines.Clear();
+                        attachCanvas(paintSurface);
                     }
                 }
             }
@@ -496,6 +507,7 @@ namespace Painter
                     paintSurface.Width = image.Width;
                     paintSurface.Height = image.Height;
                     paintSurface.Children.Clear();
+                    canvasStraightLines.Clear();
                     paintSurface.Background = new ImageBrush(image);
                 }
             }
@@ -526,6 +538,7 @@ namespace Painter
                 {
                     // Clear and resize canvas
                     paintSurface.Children.Clear();
+                    canvasStraightLines.Clear();
                     paintSurface.Background = new SolidColorBrush(Colors.White);
                     paintSurface.Width = dialog.CanvasWidth;
                     paintSurface.Height = dialog.CanvasHeight;
