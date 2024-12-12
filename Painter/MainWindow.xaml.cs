@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
@@ -16,7 +17,9 @@ namespace Painter
         Brush,
         Point,
         Line,
-        EditLine
+        EditLine,
+        Circle,
+        Ellipse
     }
 
     /// <summary>
@@ -25,11 +28,16 @@ namespace Painter
     public partial class MainWindow : Window
     {
         Point mouseDownPoint = new Point(); // Mouse position when left button is pressed
+        
         Line? straightLine = null; // Straight line currently being created
         List<Line> canvasStraightLines = new List<Line>(); // List of straight lines on paintSurface
         Line? selectedLine = null; // Stores the selected line
         bool isEditingStartPoint = false; // Track which point is being edited
+
+        Ellipse? newEllipse = null;
+
         ToolType selectedTool; // Currently selected tool
+        System.Windows.Media.Color toolColor = Colors.Black; // Color for all tools
 
         System.Windows.Media.Effects.Effect dropShadow;
         bool mouseUp = true;
@@ -59,16 +67,20 @@ namespace Painter
 
         private void resetTools()
         {
-            if (selectedTool == ToolType.Line)
+            switch (selectedTool)
             {
-                straightLine = null;
-                paintSurface.Cursor = Cursors.Cross;
-            }
-            else if (selectedTool == ToolType.EditLine)
-            {
-                selectedLine = null;
-                isEditingStartPoint = false;
-                paintSurface.Cursor = Cursors.Arrow;
+                case ToolType.Line:
+                    straightLine = null;
+                    paintSurface.Cursor = Cursors.Cross;
+                    break;
+                case ToolType.EditLine:
+                    selectedLine = null;
+                    isEditingStartPoint = false;
+                    paintSurface.Cursor = Cursors.Arrow;
+                    break;
+                case ToolType.Ellipse:
+                    newEllipse = null;
+                    break;
             }
         }
 
@@ -92,7 +104,7 @@ namespace Painter
             {
                 case ToolType.Point:
                     Ellipse ellipse = new Ellipse();
-                    ellipse.Fill = new SolidColorBrush(Colors.Black);
+                    ellipse.Fill = new SolidColorBrush(toolColor);
                     ellipse.Width = 20;
                     ellipse.Height = 20;
                     ellipse.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
@@ -102,7 +114,7 @@ namespace Painter
                     if (straightLine is null)
                     {
                         straightLine = new Line();
-                        straightLine.Stroke = new SolidColorBrush(Colors.Black);
+                        straightLine.Stroke = new SolidColorBrush(toolColor);
                         straightLine.StrokeThickness = 4;
                         straightLine.X1 = mouseDownPoint.X;
                         straightLine.Y1 = mouseDownPoint.Y;
@@ -135,6 +147,15 @@ namespace Painter
                         }
                     }
                     break;
+                case ToolType.Circle:
+                case ToolType.Ellipse:
+                    newEllipse = new Ellipse();
+                    newEllipse.Stroke = new SolidColorBrush(toolColor);
+                    newEllipse.Width = 20;
+                    newEllipse.Height = 20;
+                    newEllipse.Margin = new Thickness(mouseDownPoint.X - newEllipse.Width / 2, mouseDownPoint.Y - newEllipse.Height / 2, 0, 0);
+                    paintSurface.Children.Add(newEllipse);
+                    break;
             }
         }
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
@@ -146,7 +167,7 @@ namespace Painter
                     if (!mouseUp && e.LeftButton == MouseButtonState.Pressed)
                     {
                         Line line = new Line();
-                        line.Stroke = new SolidColorBrush(Colors.Black);
+                        line.Stroke = new SolidColorBrush(toolColor);
                         line.StrokeThickness = 4;
                         line.X1 = mouseDownPoint.X;
                         line.Y1 = mouseDownPoint.Y;
@@ -157,8 +178,8 @@ namespace Painter
                     }
                     break;
                 case ToolType.EditLine:
-                    // Change coursor if hoverd over line edit point
                     paintSurface.Cursor = Cursors.Arrow;
+                    // Change coursor if hoverd over line edit point
                     foreach (var line in canvasStraightLines)
                     {
                         if (IsMouseOverLinePoint(line.X1, line.Y1, currentMousePosition))
@@ -188,12 +209,32 @@ namespace Painter
                         }
                     }
                     break;
+                case ToolType.Circle:
+                case ToolType.Ellipse:
+                    if (!mouseUp && newEllipse!= null && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        paintSurface.Cursor = Cursors.SizeAll;
+                        newEllipse.Width = Math.Abs(currentMousePosition.X - newEllipse.Margin.Left);
+                        newEllipse.Height = (selectedTool == ToolType.Ellipse) ? Math.Abs(currentMousePosition.Y - newEllipse.Margin.Top) : newEllipse.Width;
+                        newEllipse.Margin = new Thickness(mouseDownPoint.X - newEllipse.Width / 2, mouseDownPoint.Y - newEllipse.Height / 2, 0, 0);
+                    }
+                    break;
             }
         }
         private void Canvas_MouseUp(object sender, MouseEventArgs e)
         {
             mouseUp = true;
-            selectedLine = null;
+            switch (selectedTool)
+            {
+                case ToolType.EditLine:
+                    selectedLine = null;
+                    break;
+                case ToolType.Circle:
+                case ToolType.Ellipse:
+                    paintSurface.Cursor = Cursors.Cross;
+                    newEllipse = null;
+                    break;
+            }
         }
 
         private bool IsMouseOverLinePoint(double x, double y, Point mousePosition)
@@ -239,6 +280,14 @@ namespace Painter
                     case "editLineButton":
                         selectedTool = ToolType.EditLine;
                         paintSurface.Cursor = Cursors.Arrow;
+                        break;
+                    case "circleButton":
+                        selectedTool = ToolType.Circle;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "ellipseButton":
+                        selectedTool = ToolType.Ellipse;
+                        paintSurface.Cursor = Cursors.Cross;
                         break;
                 }
                 button.IsChecked = true;
