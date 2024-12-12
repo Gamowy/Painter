@@ -140,7 +140,7 @@ namespace Painter
                     ellipse.Fill = new SolidColorBrush(toolColor);
                     ellipse.Width = toolSize;
                     ellipse.Height = toolSize;
-                    ellipse.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
+                    ellipse.Margin = new Thickness(mouseDownPoint.X - ellipse.Width / 2, mouseDownPoint.Y - ellipse.Width / 2, 0, 0);
                     paintSurface.Children.Add(ellipse);
                     break;
                 case ToolType.Line:
@@ -186,7 +186,9 @@ namespace Painter
                     newEllipse = new Ellipse();
                     newEllipse.Stroke = new SolidColorBrush(toolColor);
                     newEllipse.StrokeThickness = toolSize;
-                    newEllipse.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
+                    newEllipse.Width = toolSize;
+                    newEllipse.Height = toolSize;
+                    newEllipse.Margin = new Thickness(mouseDownPoint.X - newEllipse.Width / 2, mouseDownPoint.Y - newEllipse.Height / 2, 0, 0);
                     paintSurface.Children.Add(newEllipse);
                     break;
                 case ToolType.Rectangle:
@@ -194,7 +196,9 @@ namespace Painter
                     newRect = new Rectangle();
                     newRect.Stroke = new SolidColorBrush(toolColor);
                     newRect.StrokeThickness = toolSize;
-                    newRect.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
+                    newRect.Width = toolSize;
+                    newRect.Height = toolSize;
+                    newRect.Margin = new Thickness(mouseDownPoint.X - newRect.Width / 2 , mouseDownPoint.Y - newRect.Height / 2, 0, 0);
                     paintSurface.Children.Add(newRect);
                     break;
             }
