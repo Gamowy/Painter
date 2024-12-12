@@ -54,18 +54,33 @@
                             <TextBlock Margin="5,0,5,0">Edytuj linie</TextBlock>
                         </StackPanel>
                     </ToggleButton>
-                    <ToggleButton x:Name="circleButton" Click="ToolButton_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconJamIcons Kind="Circle" />
-                            <TextBlock Margin="5,0,5,0">Koło</TextBlock>
-                        </StackPanel>
-                    </ToggleButton>
                     <ToggleButton x:Name="ellipseButton" Click="ToolButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconMaterial Kind="EllipseOutline" />
                             <TextBlock Margin="5,0,5,0">Elipsa</TextBlock>
                         </StackPanel>
                     </ToggleButton>
+                    <ToggleButton x:Name="circleButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons Kind="Circle" />
+                            <TextBlock Margin="5,0,5,0">Koło</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="rectangleButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconPhosphorIcons Kind="RectangleBold" />
+                            <TextBlock Margin="5,0,5,0">Prostokąt</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="squareButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="CropSquare" />
+                            <TextBlock Margin="5,0,5,0">Kwadrat</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
+                    <Separator/>
+                    <Label>Rozmiar: </Label>
+                    <ComboBox x:Name="sizeComboBox"/>
                 </ToolBar>
             </ToolBarTray>
         </Grid>

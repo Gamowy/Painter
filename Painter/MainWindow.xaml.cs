@@ -6,7 +6,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
@@ -18,8 +17,10 @@ namespace Painter
         Point,
         Line,
         EditLine,
+        Ellipse,
         Circle,
-        Ellipse
+        Square,
+        Rectangle,
     }
 
     /// <summary>
@@ -35,9 +36,19 @@ namespace Painter
         bool isEditingStartPoint = false; // Track which point is being edited
 
         Ellipse? newEllipse = null;
+        Rectangle? newRect = null;
 
         ToolType selectedTool; // Currently selected tool
         System.Windows.Media.Color toolColor = Colors.Black; // Color for all tools
+        int toolSize
+        {
+            get
+            {
+                return (int)sizeComboBox.SelectedValue;
+
+            }
+        }
+
 
         System.Windows.Media.Effects.Effect dropShadow;
         bool mouseUp = true;
@@ -61,6 +72,13 @@ namespace Painter
             setAlignmentValue();
             SystemParameters.StaticPropertyChanged += (sender, e) => { setAlignmentValue(); };
 
+            // Add values to tool size combobox
+            for (int i = 4; i <= 64; i+=4)
+            {
+                sizeComboBox.Items.Add(i);
+            }
+            sizeComboBox.SelectedIndex = 0;
+
             // Save canvas dropshadow for time when we need to remove it during saving to png
             dropShadow = paintSurface.Effect;
         }
@@ -79,7 +97,13 @@ namespace Painter
                     paintSurface.Cursor = Cursors.Arrow;
                     break;
                 case ToolType.Ellipse:
+                    paintSurface.Cursor = Cursors.Cross;
                     newEllipse = null;
+                    break;
+                case ToolType.Rectangle:
+                case ToolType.Square:
+                    paintSurface.Cursor = Cursors.Cross;
+                    newRect = null;
                     break;
             }
         }
@@ -105,8 +129,8 @@ namespace Painter
                 case ToolType.Point:
                     Ellipse ellipse = new Ellipse();
                     ellipse.Fill = new SolidColorBrush(toolColor);
-                    ellipse.Width = 20;
-                    ellipse.Height = 20;
+                    ellipse.Width = toolSize;
+                    ellipse.Height = toolSize;
                     ellipse.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
                     paintSurface.Children.Add(ellipse);
                     break;
@@ -115,7 +139,7 @@ namespace Painter
                     {
                         straightLine = new Line();
                         straightLine.Stroke = new SolidColorBrush(toolColor);
-                        straightLine.StrokeThickness = 4;
+                        straightLine.StrokeThickness = toolSize;
                         straightLine.X1 = mouseDownPoint.X;
                         straightLine.Y1 = mouseDownPoint.Y;
                         paintSurface.Cursor = Cursors.Arrow;
@@ -147,14 +171,21 @@ namespace Painter
                         }
                     }
                     break;
-                case ToolType.Circle:
                 case ToolType.Ellipse:
+                case ToolType.Circle:
                     newEllipse = new Ellipse();
                     newEllipse.Stroke = new SolidColorBrush(toolColor);
-                    newEllipse.Width = 20;
-                    newEllipse.Height = 20;
-                    newEllipse.Margin = new Thickness(mouseDownPoint.X - newEllipse.Width / 2, mouseDownPoint.Y - newEllipse.Height / 2, 0, 0);
+                    newEllipse.StrokeThickness = toolSize;
+                    newEllipse.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
                     paintSurface.Children.Add(newEllipse);
+                    break;
+                case ToolType.Rectangle:
+                case ToolType.Square:
+                    newRect = new Rectangle();
+                    newRect.Stroke = new SolidColorBrush(toolColor);
+                    newRect.StrokeThickness = toolSize;
+                    newRect.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
+                    paintSurface.Children.Add(newRect);
                     break;
             }
         }
@@ -168,7 +199,7 @@ namespace Painter
                     {
                         Line line = new Line();
                         line.Stroke = new SolidColorBrush(toolColor);
-                        line.StrokeThickness = 4;
+                        line.StrokeThickness = toolSize;
                         line.X1 = mouseDownPoint.X;
                         line.Y1 = mouseDownPoint.Y;
                         line.X2 = e.GetPosition(paintSurface).X;
@@ -209,14 +240,24 @@ namespace Painter
                         }
                     }
                     break;
-                case ToolType.Circle:
                 case ToolType.Ellipse:
+                case ToolType.Circle:
                     if (!mouseUp && newEllipse!= null && e.LeftButton == MouseButtonState.Pressed)
                     {
                         paintSurface.Cursor = Cursors.SizeAll;
                         newEllipse.Width = Math.Abs(currentMousePosition.X - newEllipse.Margin.Left);
                         newEllipse.Height = (selectedTool == ToolType.Ellipse) ? Math.Abs(currentMousePosition.Y - newEllipse.Margin.Top) : newEllipse.Width;
                         newEllipse.Margin = new Thickness(mouseDownPoint.X - newEllipse.Width / 2, mouseDownPoint.Y - newEllipse.Height / 2, 0, 0);
+                    }
+                    break;
+                case ToolType.Rectangle:
+                case ToolType.Square:
+                    if (!mouseUp && newRect != null && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        paintSurface.Cursor = Cursors.SizeAll;
+                        newRect.Width = Math.Abs(currentMousePosition.X - newRect.Margin.Left);
+                        newRect.Height = (selectedTool == ToolType.Rectangle) ? Math.Abs(currentMousePosition.Y - newRect.Margin.Top) : newRect.Width;
+                        newRect.Margin = new Thickness(mouseDownPoint.X - newRect.Width / 2, mouseDownPoint.Y - newRect.Height / 2, 0, 0);
                     }
                     break;
             }
@@ -229,10 +270,15 @@ namespace Painter
                 case ToolType.EditLine:
                     selectedLine = null;
                     break;
-                case ToolType.Circle:
                 case ToolType.Ellipse:
+                case ToolType.Circle:
                     paintSurface.Cursor = Cursors.Cross;
                     newEllipse = null;
+                    break;
+                case ToolType.Rectangle:
+                case ToolType.Square:
+                    paintSurface.Cursor = Cursors.Cross;
+                    newRect = null;
                     break;
             }
         }
@@ -287,6 +333,14 @@ namespace Painter
                         break;
                     case "ellipseButton":
                         selectedTool = ToolType.Ellipse;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "rectangleButton":
+                        selectedTool = ToolType.Rectangle;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "squareButton":
+                        selectedTool = ToolType.Square;
                         paintSurface.Cursor = Cursors.Cross;
                         break;
                 }
