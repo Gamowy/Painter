@@ -17,7 +17,7 @@
                 <MenuItem Header="_Plik">
                     <MenuItem Header="_Zapisz plik" Click="SaveCanvas_Click"></MenuItem>
                     <MenuItem Header="_Wczytaj plik" Click="LoadToCanvas_Click"></MenuItem>
-                    <MenuItem Header="_Wyeksportuj grafikę" Click="SaveCanvasToImg_Click"></MenuItem>
+                    <MenuItem Header="_Eksportuj grafikę" Click="SaveCanvasToImg_Click"></MenuItem>
                     <MenuItem Header="_Wczytaj grafikę" Click="LoadImgToCanvas_Click"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Edytuj">
@@ -29,31 +29,31 @@
                 </MenuItem>
             </Menu>
             <ToolBarTray Grid.Row="1" IsLocked="True" Background="#2f2f2f">
-                <ToolBar>
-                    <Button>
+                <ToolBar x:Name="toolbar">
+                    <ToggleButton x:Name="brushButton" Click="ToolButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconEntypo Kind="Brush"/>
-                            <TextBlock Margin="5,0,0,0"> Pędzel</TextBlock>
+                            <TextBlock Margin="5,0,5,0"> Pędzel</TextBlock>
                         </StackPanel>
-                    </Button>
-                    <Button>
+                    </ToggleButton>
+                    <ToggleButton x:Name="pointButton" Click="ToolButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconFontAwesome Kind="ArrowsToDotSolid"/>
-                            <TextBlock Margin="5,0,0,0">Punkt</TextBlock>
+                            <TextBlock Margin="5,0,5,0">Punkt</TextBlock>
                         </StackPanel>
-                    </Button>
-                    <Button>
+                    </ToggleButton>
+                    <ToggleButton x:Name="lineButton" Click="ToolButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconModern Kind="VectorLine"/>
-                            <TextBlock Margin="5,0,0,0">Linia</TextBlock>
+                            <TextBlock Margin="5,0,5,0">Linia</TextBlock>
                         </StackPanel>
-                    </Button>
-                    <Button>
+                    </ToggleButton>
+                    <ToggleButton x:Name="editLineButton" Click="ToolButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconMaterial Kind="VectorLine"/>
-                            <TextBlock Margin="5,0,0,0">Edytuj linie</TextBlock>
+                            <TextBlock Margin="5,0,5,0">Edytuj linie</TextBlock>
                         </StackPanel>
-                    </Button>
+                    </ToggleButton>
                 </ToolBar>
             </ToolBarTray>
         </Grid>

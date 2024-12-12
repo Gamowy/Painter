@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -10,12 +11,23 @@ using System.Windows.Shapes;
 
 namespace Painter
 {
+    enum ToolType
+    {
+        Brush,
+        Point,
+        Line,
+        EditLine
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
         Point currentPoint = new System.Windows.Point();
+        Line? straightLine = null;
+        ToolType selectedTool;
+
         System.Windows.Media.Effects.Effect dropShadow;
         bool mouseUp = true;
 
@@ -26,7 +38,8 @@ namespace Painter
             this.Height = SystemParameters.PrimaryScreenHeight / 1.45;
             paintSurface.Width = 1200;
             paintSurface.Height = 600;
-
+            selectedTool = ToolType.Brush;
+            brushButton.IsChecked = true;
 
             // Makes menu items align to right
             var menuDropAlignmentField = typeof(SystemParameters).GetField("_menuDropAlignment", BindingFlags.NonPublic | BindingFlags.Static);
@@ -40,6 +53,16 @@ namespace Painter
             // Save canvas dropshadow for time when we need to remove it during saving to png
             dropShadow = paintSurface.Effect;
         }
+
+        private void resetTools()
+        {
+            if (selectedTool == ToolType.Line)
+            {
+                straightLine = null;
+                paintSurface.Cursor = Cursors.Cross;
+            }
+        }
+
         private void ReattachCanvasEventHandlers(Canvas canvas)
         {
             canvas.MouseDown += Canvas_MouseDown;
@@ -49,35 +72,116 @@ namespace Painter
 
         #region Canvas events
 
-        private void Canvas_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed)
             {
                 currentPoint = e.GetPosition(paintSurface);
                 mouseUp = false;
             }
-        }
-        private void Canvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (!mouseUp && e.LeftButton == MouseButtonState.Pressed)
-            {
-                Line line = new Line();
-                line.Stroke = new SolidColorBrush(Colors.Black);
-                line.StrokeThickness = 4;
-                line.X1 = currentPoint.X;
-                line.Y1 = currentPoint.Y;
-                line.X2 = e.GetPosition(paintSurface).X;
-                line.Y2 = e.GetPosition(paintSurface).Y;
-                currentPoint = e.GetPosition(paintSurface);
-                paintSurface.Children.Add(line);
+            switch (selectedTool) {
+                case ToolType.Point: 
+                    Ellipse ellipse = new Ellipse();
+                    ellipse.Fill = new SolidColorBrush(Colors.Black);
+                    ellipse.Width = 20;
+                    ellipse.Height = 20;
+                    ellipse.Margin = new Thickness(currentPoint.X, currentPoint.Y, 0, 0);
+                    paintSurface.Children.Add(ellipse);
+                    break;
+                case ToolType.Line:
+                    if (straightLine is null)
+                    {
+                        straightLine = new Line();
+                        straightLine.Stroke = new SolidColorBrush(Colors.Black);
+                        straightLine.StrokeThickness = 4;
+                        straightLine.X1 = currentPoint.X;
+                        straightLine.Y1 = currentPoint.Y;
+                        paintSurface.Cursor = Cursors.Arrow;
+                    }
+                    else
+                    {
+                        straightLine.X2 = currentPoint.X;
+                        straightLine.Y2 = currentPoint.Y;
+                        paintSurface.Children.Add(straightLine);
+                        straightLine = null;
+                        paintSurface.Cursor = Cursors.Cross;
+                    }
+                    break;
             }
         }
-        private void Canvas_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
+        private void Canvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            switch(selectedTool) {
+                case ToolType.Brush:
+                    if (!mouseUp && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        Line line = new Line();
+                        line.Stroke = new SolidColorBrush(Colors.Black);
+                        line.StrokeThickness = 4;
+                        line.X1 = currentPoint.X;
+                        line.Y1 = currentPoint.Y;
+                        line.X2 = e.GetPosition(paintSurface).X;
+                        line.Y2 = e.GetPosition(paintSurface).Y;
+                        currentPoint = e.GetPosition(paintSurface);
+                        paintSurface.Children.Add(line);
+                    }
+                    break;
+            }
+        }
+        private void Canvas_MouseUp(object sender, MouseEventArgs e)
         {
             mouseUp = true;
         }
+
+        #endregion
+
+        #region Toolbar events
+
+        private void ToolButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as ToggleButton;
+            if (button != null)
+            {
+                // uncheck all buttons in toolbar
+                foreach (var item in toolbar.Items)
+                {
+                    if (item is ToggleButton)
+                    {
+                        var toggleButton = item as ToggleButton;
+                        toggleButton!.IsChecked = false;
+                    }
+                }
+
+                switch (button.Name)
+                {
+                    case "brushButton":
+                        selectedTool = ToolType.Brush;
+                        paintSurface.Cursor = Cursors.Pen;
+                        break;
+                    case "pointButton":
+                        selectedTool = ToolType.Point;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "lineButton":
+                        selectedTool = ToolType.Line;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "editLineButton":
+                        selectedTool = ToolType.EditLine;
+                        paintSurface.Cursor = Cursors.Arrow;
+                        break;
+                }
+                button.IsChecked = true;
+                resetTools();
+            }
+       }
+
+        #endregion
+
+        #region Menu events
         private void SaveCanvas_Click(object sender, RoutedEventArgs e)
         {
+            resetTools();
             try
             {
                 var dialog = new Microsoft.Win32.SaveFileDialog();
@@ -101,6 +205,7 @@ namespace Painter
 
         private void LoadToCanvas_Click(object sender, RoutedEventArgs e)
         {
+            resetTools();
             try
             {
                 var dialog = new Microsoft.Win32.OpenFileDialog();
@@ -131,6 +236,7 @@ namespace Painter
 
         private void SaveCanvasToImg_Click(object sender, RoutedEventArgs e)
         {
+            resetTools();
             try
             {
                 var dialog = new Microsoft.Win32.SaveFileDialog();
@@ -197,6 +303,7 @@ namespace Painter
 
         private void LoadImgToCanvas_Click(object sender, RoutedEventArgs e)
         {
+            resetTools();
             try
             {
                 var dialog = new Microsoft.Win32.OpenFileDialog();
@@ -227,6 +334,7 @@ namespace Painter
 
         private void ClearCanvas_Click(object sender, RoutedEventArgs e)
         {
+            resetTools();
             if (MessageBox.Show("Wyczyścić zawartość płótna?", "Wyczyść płótno", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 paintSurface.Children.Clear();
@@ -235,6 +343,7 @@ namespace Painter
         }
         private void ResizeCanvas_Click(object sender, RoutedEventArgs e)
         {
+            resetTools();
             var dialog = new ResizeCanvasDialog();
             bool? result = dialog.ShowDialog();
             if (result == true)
@@ -253,10 +362,11 @@ namespace Painter
 
         private void About_Click(object sender, RoutedEventArgs e)
         {
+            resetTools();
             MessageBox.Show("Painter - aplikacja do tworzenia grafiki\nProjekt zaliczeniowy z przedmiotu \"Grafika komputerowa i przetwarzanie obrazów\" 2024/2025\n" +
                 "Autor: Patryk Gamrat", "O programie", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-
-        #endregion
     }
+
+    #endregion
 }
