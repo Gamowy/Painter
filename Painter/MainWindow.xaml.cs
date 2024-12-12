@@ -24,9 +24,12 @@ namespace Painter
     /// </summary>
     public partial class MainWindow : Window
     {
-        Point currentPoint = new System.Windows.Point();
-        Line? straightLine = null;
-        ToolType selectedTool;
+        Point mouseDownPoint = new Point(); // Mouse position when left button is pressed
+        Line? straightLine = null; // Straight line currently being created
+        List<Line> canvasStraightLines = new List<Line>(); // List of straight lines on paintSurface
+        Line? selectedLine = null; // Stores the selected line
+        bool isEditingStartPoint = false; // Track which point is being edited
+        ToolType selectedTool; // Currently selected tool
 
         System.Windows.Media.Effects.Effect dropShadow;
         bool mouseUp = true;
@@ -61,6 +64,12 @@ namespace Painter
                 straightLine = null;
                 paintSurface.Cursor = Cursors.Cross;
             }
+            else if (selectedTool == ToolType.EditLine)
+            {
+                selectedLine = null;
+                isEditingStartPoint = false;
+                paintSurface.Cursor = Cursors.Arrow;
+            }
         }
 
         private void ReattachCanvasEventHandlers(Canvas canvas)
@@ -76,16 +85,17 @@ namespace Painter
         {
             if (e.ButtonState == MouseButtonState.Pressed)
             {
-                currentPoint = e.GetPosition(paintSurface);
+                mouseDownPoint = e.GetPosition(paintSurface);
                 mouseUp = false;
             }
-            switch (selectedTool) {
-                case ToolType.Point: 
+            switch (selectedTool)
+            {
+                case ToolType.Point:
                     Ellipse ellipse = new Ellipse();
                     ellipse.Fill = new SolidColorBrush(Colors.Black);
                     ellipse.Width = 20;
                     ellipse.Height = 20;
-                    ellipse.Margin = new Thickness(currentPoint.X, currentPoint.Y, 0, 0);
+                    ellipse.Margin = new Thickness(mouseDownPoint.X, mouseDownPoint.Y, 0, 0);
                     paintSurface.Children.Add(ellipse);
                     break;
                 case ToolType.Line:
@@ -94,36 +104,88 @@ namespace Painter
                         straightLine = new Line();
                         straightLine.Stroke = new SolidColorBrush(Colors.Black);
                         straightLine.StrokeThickness = 4;
-                        straightLine.X1 = currentPoint.X;
-                        straightLine.Y1 = currentPoint.Y;
+                        straightLine.X1 = mouseDownPoint.X;
+                        straightLine.Y1 = mouseDownPoint.Y;
                         paintSurface.Cursor = Cursors.Arrow;
                     }
                     else
                     {
-                        straightLine.X2 = currentPoint.X;
-                        straightLine.Y2 = currentPoint.Y;
+                        straightLine.X2 = mouseDownPoint.X;
+                        straightLine.Y2 = mouseDownPoint.Y;
                         paintSurface.Children.Add(straightLine);
+                        canvasStraightLines.Add(straightLine);
                         straightLine = null;
                         paintSurface.Cursor = Cursors.Cross;
+                    }
+                    break;
+                case ToolType.EditLine:
+                    foreach (var line in canvasStraightLines)
+                    {
+                        if (IsMouseOverLinePoint(line.X1, line.Y1, mouseDownPoint))
+                        {
+                            selectedLine = line;
+                            isEditingStartPoint = true;
+                            break;
+                        }
+                        else if (IsMouseOverLinePoint(line.X2, line.Y2, mouseDownPoint))
+                        {
+                            selectedLine = line;
+                            isEditingStartPoint = false;
+                            break;
+                        }
                     }
                     break;
             }
         }
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            switch(selectedTool) {
+            Point currentMousePosition = e.GetPosition(paintSurface);
+            switch (selectedTool)
+            {
                 case ToolType.Brush:
                     if (!mouseUp && e.LeftButton == MouseButtonState.Pressed)
                     {
                         Line line = new Line();
                         line.Stroke = new SolidColorBrush(Colors.Black);
                         line.StrokeThickness = 4;
-                        line.X1 = currentPoint.X;
-                        line.Y1 = currentPoint.Y;
+                        line.X1 = mouseDownPoint.X;
+                        line.Y1 = mouseDownPoint.Y;
                         line.X2 = e.GetPosition(paintSurface).X;
                         line.Y2 = e.GetPosition(paintSurface).Y;
-                        currentPoint = e.GetPosition(paintSurface);
+                        mouseDownPoint = e.GetPosition(paintSurface);
                         paintSurface.Children.Add(line);
+                    }
+                    break;
+                case ToolType.EditLine:
+                    // Change coursor if hoverd over line edit point
+                    paintSurface.Cursor = Cursors.Arrow;
+                    foreach (var line in canvasStraightLines)
+                    {
+                        if (IsMouseOverLinePoint(line.X1, line.Y1, currentMousePosition))
+                        {
+                            paintSurface.Cursor = Cursors.SizeAll;
+                            break;
+                        }
+                        else if (IsMouseOverLinePoint(line.X2, line.Y2, currentMousePosition))
+                        {
+                            paintSurface.Cursor = Cursors.SizeAll;
+                            break;
+                        }
+                    }
+
+                    if (!mouseUp && selectedLine != null && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        
+                        if (isEditingStartPoint)
+                        {
+                            selectedLine.X1 = currentMousePosition.X;
+                            selectedLine.Y1 = currentMousePosition.Y;
+                        }
+                        else
+                        {
+                            selectedLine.X2 = currentMousePosition.X;
+                            selectedLine.Y2 = currentMousePosition.Y;
+                        }
                     }
                     break;
             }
@@ -131,6 +193,13 @@ namespace Painter
         private void Canvas_MouseUp(object sender, MouseEventArgs e)
         {
             mouseUp = true;
+            selectedLine = null;
+        }
+
+        private bool IsMouseOverLinePoint(double x, double y, Point mousePosition)
+        {
+            const double tolerance = 10.0;
+            return (Math.Abs(x - mousePosition.X) < tolerance) && (Math.Abs(y - mousePosition.Y) < tolerance);
         }
 
         #endregion
@@ -152,6 +221,7 @@ namespace Painter
                     }
                 }
 
+                resetTools();
                 switch (button.Name)
                 {
                     case "brushButton":
@@ -172,9 +242,8 @@ namespace Painter
                         break;
                 }
                 button.IsChecked = true;
-                resetTools();
             }
-       }
+        }
 
         #endregion
 
@@ -323,6 +392,7 @@ namespace Painter
                     }
                     paintSurface.Width = image.Width;
                     paintSurface.Height = image.Height;
+                    paintSurface.Children.Clear();
                     paintSurface.Background = new ImageBrush(image);
                 }
             }
