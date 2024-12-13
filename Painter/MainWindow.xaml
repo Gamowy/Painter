@@ -84,6 +84,12 @@
                             <TextBlock Margin="5,0,5,0">Kwadrat</TextBlock>
                         </StackPanel>
                     </ToggleButton>
+                    <ToggleButton x:Name="hexagonButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterialDesign Kind="HexagonOutline" />
+                            <TextBlock Margin="5,0,5,0">Sześciokąt</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
                     <Separator/>
                     <Label>Rozmiar: </Label>
                     <ComboBox x:Name="sizeComboBox"/>

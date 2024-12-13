@@ -23,6 +23,7 @@ namespace Painter
         Circle,
         Square,
         Rectangle,
+        Hexagon
     }
 
     /// <summary>
@@ -254,6 +255,18 @@ namespace Painter
                     newRect.Margin = new Thickness(mouseDownPoint.X - newRect.Width / 2 , mouseDownPoint.Y - newRect.Height / 2, 0, 0);
                     paintSurface.Children.Add(newRect);
                     break;
+                case ToolType.Hexagon:
+                    Polygon newHexagon = new Polygon();
+                    newHexagon.Stroke = new SolidColorBrush(toolColor);
+                    newHexagon.StrokeThickness = toolSize;
+                    newHexagon.Points.Add(new Point(mouseDownPoint.X - 40, mouseDownPoint.Y - 80));
+                    newHexagon.Points.Add(new Point(mouseDownPoint.X + 40, mouseDownPoint.Y - 80));
+                    newHexagon.Points.Add(new Point(mouseDownPoint.X + 80, mouseDownPoint.Y));
+                    newHexagon.Points.Add(new Point(mouseDownPoint.X + 40, mouseDownPoint.Y + 80));
+                    newHexagon.Points.Add(new Point(mouseDownPoint.X - 40, mouseDownPoint.Y + 80));
+                    newHexagon.Points.Add(new Point(mouseDownPoint.X - 80, mouseDownPoint.Y));
+                    paintSurface.Children.Add(newHexagon);
+                    break;
             }
         }
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
@@ -417,6 +430,10 @@ namespace Painter
                         break;
                     case "squareButton":
                         selectedTool = ToolType.Square;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "hexagonButton":
+                        selectedTool = ToolType.Hexagon;
                         paintSurface.Cursor = Cursors.Cross;
                         break;
                 }
