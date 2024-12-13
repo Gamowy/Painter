@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
@@ -17,6 +18,7 @@ namespace Painter
         Point,
         Line,
         EditLine,
+        Polyline,
         Ellipse,
         Circle,
         Square,
@@ -37,9 +39,10 @@ namespace Painter
 
         Ellipse? newEllipse = null;
         Rectangle? newRect = null;
+        Polyline? newPolyline = null;
 
         ToolType selectedTool; // Currently selected tool
-        System.Windows.Media.Color toolColor = Colors.Black; // Color for all tools
+        Color toolColor = Colors.Black; // Color for all tools
         int toolSize
         {
             get
@@ -95,6 +98,12 @@ namespace Painter
                     selectedLine = null;
                     isEditingStartPoint = false;
                     paintSurface.Cursor = Cursors.Arrow;
+                    statusBar.Visibility = Visibility.Collapsed;
+                    ResetLineHighlight();
+                    break;
+                case ToolType.Polyline:
+                    newPolyline = null;
+                    statusBar.Visibility = Visibility.Collapsed;
                     break;
                 case ToolType.Ellipse:
                     paintSurface.Cursor = Cursors.Cross;
@@ -121,6 +130,28 @@ namespace Painter
                 {
                     canvasStraightLines.Add(l);
                 }
+            }
+        }
+        private void HighlightLines()
+        {
+            var shadowEffect = new DropShadowEffect
+            {
+                Color = Colors.Blue,
+                BlurRadius = 15,
+                ShadowDepth = 0
+            };
+
+            foreach (var line in canvasStraightLines)
+            {
+                line.Effect = shadowEffect;
+            }
+        }
+
+        private void ResetLineHighlight()
+        {
+            foreach (var line in canvasStraightLines)
+            {
+                line.Effect = null;
             }
         }
 
@@ -152,7 +183,7 @@ namespace Painter
                         straightLine.StrokeThickness = toolSize;
                         straightLine.X1 = mouseDownPoint.X;
                         straightLine.Y1 = mouseDownPoint.Y;
-                        paintSurface.Cursor = Cursors.Arrow;
+                        paintSurface.Cursor = Cursors.Cross;
                     }
                     else
                     {
@@ -161,7 +192,7 @@ namespace Painter
                         paintSurface.Children.Add(straightLine);
                         canvasStraightLines.Add(straightLine);
                         straightLine = null;
-                        paintSurface.Cursor = Cursors.Cross;
+                        paintSurface.Cursor = Cursors.Arrow;
                     }
                     break;
                 case ToolType.EditLine:
@@ -179,6 +210,28 @@ namespace Painter
                             isEditingStartPoint = false;
                             break;
                         }
+                    }
+                    break;
+                case ToolType.Polyline:
+                    if (newPolyline is null)
+                    {
+                        newPolyline = new Polyline();
+                        newPolyline.Stroke = new SolidColorBrush(toolColor);
+                        newPolyline.StrokeThickness = toolSize;
+                        newPolyline.Points.Add(mouseDownPoint);
+                        paintSurface.Children.Add(newPolyline);
+                        paintSurface.Cursor = Cursors.Cross;
+                    }
+                    else if (Keyboard.IsKeyDown(Key.LeftCtrl))
+                    {
+                        newPolyline.Points.Add(mouseDownPoint);
+                    }
+                    else
+                    {
+                        if (newPolyline.Points.Count() < 2)
+                            newPolyline.Points.Add(mouseDownPoint);
+                        newPolyline = null;
+                        paintSurface.Cursor = Cursors.Arrow;
                     }
                     break;
                 case ToolType.Ellipse:
@@ -335,11 +388,20 @@ namespace Painter
                         break;
                     case "lineButton":
                         selectedTool = ToolType.Line;
-                        paintSurface.Cursor = Cursors.Cross;
+                        paintSurface.Cursor = Cursors.Arrow;
                         break;
                     case "editLineButton":
                         selectedTool = ToolType.EditLine;
                         paintSurface.Cursor = Cursors.Arrow;
+                        statusBarText.Text = "Możesz edytować linie podświetlone na niebiesko";
+                        statusBar.Visibility = Visibility.Visible;
+                        HighlightLines();
+                        break;
+                    case "polylineButton":
+                        selectedTool = ToolType.Polyline;
+                        paintSurface.Cursor = Cursors.Arrow;
+                        statusBarText.Text = "Przytrzymaj CTRL aby dodać więcej punktów do lini łamanej";
+                        statusBar.Visibility = Visibility.Visible;
                         break;
                     case "circleButton":
                         selectedTool = ToolType.Circle;

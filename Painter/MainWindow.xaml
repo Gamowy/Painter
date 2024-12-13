@@ -54,6 +54,12 @@
                             <TextBlock Margin="5,0,5,0">Edytuj linie</TextBlock>
                         </StackPanel>
                     </ToggleButton>
+                    <ToggleButton x:Name="polylineButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconPhosphorIcons Kind="LineSegmentsBold" />
+                            <TextBlock Margin="5,0,5,0">Linia łamana</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
                     <ToggleButton x:Name="ellipseButton" Click="ToolButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconMaterial Kind="EllipseOutline" />
@@ -84,6 +90,11 @@
                 </ToolBar>
             </ToolBarTray>
         </Grid>
+        <StatusBar x:Name="statusBar" DockPanel.Dock="Bottom"  Visibility="Collapsed">
+            <StatusBarItem x:Name="statusBarItem" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="statusBarText" TextTrimming="WordEllipsis">Przytrzymaj CTRL aby dodać więcej punktów do lini łamanej</TextBlock>
+            </StatusBarItem>
+        </StatusBar>
         <ScrollViewer HorizontalScrollBarVisibility="Auto">
             <Canvas Width="1200" Height="600" Name="paintSurface" 
                     MouseDown="Canvas_MouseDown" 
