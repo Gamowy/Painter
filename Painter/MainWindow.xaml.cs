@@ -450,7 +450,7 @@ namespace Painter
             try
             {
                 var dialog = new Microsoft.Win32.SaveFileDialog();
-                dialog.Filter = "Plik painter (*pnt)|*.pnt";
+                dialog.Filter = "Plik painter (*pnt)|*.pnt|Wszystkie pliki (*.*)|*.*";
                 dialog.RestoreDirectory = true;
                 bool? result = dialog.ShowDialog();
                 if (result == true)
@@ -462,9 +462,11 @@ namespace Painter
                     }
                 }
             }
-            catch
+            catch (Exception)
             {
                 MessageBox.Show("Wystąpił błąd podczas zapisywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+                paintSurface.Children.Clear();
+                paintSurface.Background = new SolidColorBrush(Colors.White);
             }
         }
 
@@ -474,7 +476,7 @@ namespace Painter
             try
             {
                 var dialog = new Microsoft.Win32.OpenFileDialog();
-                dialog.Filter = "Plik painter (*pnt)|*.pnt";
+                dialog.Filter = "Plik painter (*pnt)|*.pnt|Wszystkie pliki (*.*)|*.*";
                 dialog.RestoreDirectory = true;
                 bool? result = dialog.ShowDialog();
                 if (result == true)
@@ -494,9 +496,11 @@ namespace Painter
                     }
                 }
             }
-            catch
+            catch (Exception)
             {
                 MessageBox.Show("Wystąpił błąd podczas odczytywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+                paintSurface.Children.Clear();
+                paintSurface.Background = new SolidColorBrush(Colors.White);
             }
         }
 
@@ -506,7 +510,7 @@ namespace Painter
             try
             {
                 var dialog = new Microsoft.Win32.SaveFileDialog();
-                dialog.Filter = "Plik PNG (*.png)|*.png|Plik JPG (*.jpg)|*.jpg|Plik GIF (*.gif)|*.gif|Plik BMP (*.bmp)|*.bmp|Plik TIFF (*.tiff)|*.tiff";
+                dialog.Filter = "Plik PNG (*.png)|*.png|Plik JPG (*.jpg)|*.jpg|Plik GIF (*.gif)|*.gif|Plik BMP (*.bmp)|*.bmp|Plik TIFF (*.tiff)|*.tiff||Wszystkie pliki (*.*)|*.*";
                 dialog.RestoreDirectory = true;
                 bool? result = dialog.ShowDialog();
                 if (result == true)
@@ -561,9 +565,11 @@ namespace Painter
                     paintSurface.Effect = dropShadow;
                 }
             }
-            catch
+            catch (Exception)
             {
                 MessageBox.Show("Wystąpił błąd podczas zapisywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+                paintSurface.Children.Clear();
+                paintSurface.Background = new SolidColorBrush(Colors.White);
             }
         }
 
@@ -573,7 +579,7 @@ namespace Painter
             try
             {
                 var dialog = new Microsoft.Win32.OpenFileDialog();
-                dialog.Filter = "Plik PNG (*.png)|*.png|Plik JPG (*.jpg)|*.jpg|Plik GIF (*.gif)|*.gif|Plik BMP (*.bmp)|*.bmp|Plik TIFF (*.tiff)|*.tiff";
+                dialog.Filter = "Plik PNG (*.png)|*.png|Plik JPG (*.jpg)|*.jpg|Plik GIF (*.gif)|*.gif|Plik BMP (*.bmp)|*.bmp|Plik TIFF (*.tiff)|*.tiff|Wszystkie pliki (*.*)|*.*";
                 dialog.RestoreDirectory = true;
                 bool? result = dialog.ShowDialog();
                 if (result == true)
@@ -594,9 +600,11 @@ namespace Painter
                     paintSurface.Background = new ImageBrush(image);
                 }
             }
-            catch
+            catch (Exception)
             {
                 MessageBox.Show("Wystąpił błąd podczas odczytywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+                paintSurface.Children.Clear();
+                paintSurface.Background = new SolidColorBrush(Colors.White);
             }
         }
 

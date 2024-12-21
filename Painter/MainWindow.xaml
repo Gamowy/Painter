@@ -84,10 +84,28 @@
                             <TextBlock Margin="5,0,5,0">Kwadrat</TextBlock>
                         </StackPanel>
                     </ToggleButton>
+                    <ToggleButton x:Name="triangleButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconCoolicons Kind="Triangle" />
+                            <TextBlock Margin="5,0,5,0">Trójkąt</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
                     <ToggleButton x:Name="hexagonButton" Click="ToolButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconMaterialDesign Kind="HexagonOutline" />
                             <TextBlock Margin="5,0,5,0">Sześciokąt</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="arrowButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconLucide Kind="ArrowBigRight" />
+                            <TextBlock Margin="5,0,5,0">Strzałka</TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="christmasTreeButton" Click="ToolButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconTypicons Kind="Tree" />
+                            <TextBlock Margin="5,0,5,0">Choinka</TextBlock>
                         </StackPanel>
                     </ToggleButton>
                     <Separator/>
