@@ -22,8 +22,11 @@ namespace Painter
         Ellipse,
         Circle,
         Square,
+        Triangle,
         Rectangle,
-        Hexagon
+        Hexagon,
+        Arrow,
+        Tree
     }
 
     /// <summary>
@@ -32,7 +35,7 @@ namespace Painter
     public partial class MainWindow : Window
     {
         Point mouseDownPoint = new Point(); // Mouse position when left button is pressed
-        
+
         Line? straightLine = null; // Straight line currently being created
         List<Line> canvasStraightLines = new List<Line>(); // List of straight lines on paintSurface
         Line? selectedLine = null; // Stores the selected line
@@ -77,7 +80,7 @@ namespace Painter
             SystemParameters.StaticPropertyChanged += (sender, e) => { setAlignmentValue(); };
 
             // Add values to tool size combobox
-            for (int i = 4; i <= 64; i+=4)
+            for (int i = 4; i <= 64; i += 4)
             {
                 sizeComboBox.Items.Add(i);
             }
@@ -165,6 +168,9 @@ namespace Painter
                 mouseDownPoint = e.GetPosition(paintSurface);
                 mouseUp = false;
             }
+
+            double x = mouseDownPoint.X;
+            double y = mouseDownPoint.Y;
             switch (selectedTool)
             {
                 case ToolType.Point:
@@ -172,7 +178,7 @@ namespace Painter
                     ellipse.Fill = new SolidColorBrush(toolColor);
                     ellipse.Width = toolSize;
                     ellipse.Height = toolSize;
-                    ellipse.Margin = new Thickness(mouseDownPoint.X - ellipse.Width / 2, mouseDownPoint.Y - ellipse.Width / 2, 0, 0);
+                    ellipse.Margin = new Thickness(x - ellipse.Width / 2, y - ellipse.Width / 2, 0, 0);
                     paintSurface.Children.Add(ellipse);
                     break;
                 case ToolType.Line:
@@ -182,14 +188,14 @@ namespace Painter
                         straightLine.Stroke = new SolidColorBrush(toolColor);
                         straightLine.Tag = "straightLine";
                         straightLine.StrokeThickness = toolSize;
-                        straightLine.X1 = mouseDownPoint.X;
-                        straightLine.Y1 = mouseDownPoint.Y;
+                        straightLine.X1 = x;
+                        straightLine.Y1 = y;
                         paintSurface.Cursor = Cursors.Cross;
                     }
                     else
                     {
-                        straightLine.X2 = mouseDownPoint.X;
-                        straightLine.Y2 = mouseDownPoint.Y;
+                        straightLine.X2 = x;
+                        straightLine.Y2 = y;
                         paintSurface.Children.Add(straightLine);
                         canvasStraightLines.Add(straightLine);
                         straightLine = null;
@@ -242,7 +248,7 @@ namespace Painter
                     newEllipse.StrokeThickness = toolSize;
                     newEllipse.Width = toolSize;
                     newEllipse.Height = toolSize;
-                    newEllipse.Margin = new Thickness(mouseDownPoint.X - newEllipse.Width / 2, mouseDownPoint.Y - newEllipse.Height / 2, 0, 0);
+                    newEllipse.Margin = new Thickness(x - newEllipse.Width / 2, y - newEllipse.Height / 2, 0, 0);
                     paintSurface.Children.Add(newEllipse);
                     break;
                 case ToolType.Rectangle:
@@ -252,20 +258,130 @@ namespace Painter
                     newRect.StrokeThickness = toolSize;
                     newRect.Width = toolSize;
                     newRect.Height = toolSize;
-                    newRect.Margin = new Thickness(mouseDownPoint.X - newRect.Width / 2 , mouseDownPoint.Y - newRect.Height / 2, 0, 0);
+                    newRect.Margin = new Thickness(x - newRect.Width / 2, y - newRect.Height / 2, 0, 0);
                     paintSurface.Children.Add(newRect);
                     break;
+                case ToolType.Triangle:
+                    Polygon newTriangle = new Polygon
+                    {
+                        Stroke = new SolidColorBrush(toolColor),
+                        StrokeThickness = toolSize,
+                        Points = new PointCollection {
+                            new Point(x, y - 80),
+                            new Point(x + 80, y + 80),
+                            new Point(x - 80, y + 80)
+                        }
+                    };
+                    paintSurface.Children.Add(newTriangle);
+                    break;
                 case ToolType.Hexagon:
-                    Polygon newHexagon = new Polygon();
-                    newHexagon.Stroke = new SolidColorBrush(toolColor);
-                    newHexagon.StrokeThickness = toolSize;
-                    newHexagon.Points.Add(new Point(mouseDownPoint.X - 40, mouseDownPoint.Y - 80));
-                    newHexagon.Points.Add(new Point(mouseDownPoint.X + 40, mouseDownPoint.Y - 80));
-                    newHexagon.Points.Add(new Point(mouseDownPoint.X + 80, mouseDownPoint.Y));
-                    newHexagon.Points.Add(new Point(mouseDownPoint.X + 40, mouseDownPoint.Y + 80));
-                    newHexagon.Points.Add(new Point(mouseDownPoint.X - 40, mouseDownPoint.Y + 80));
-                    newHexagon.Points.Add(new Point(mouseDownPoint.X - 80, mouseDownPoint.Y));
+                    Polygon newHexagon = new Polygon
+                    {
+                        Stroke = new SolidColorBrush(toolColor),
+                        StrokeThickness = toolSize,
+                        Points = new PointCollection {
+                            new Point(x - 40, y - 80),
+                            new Point(x + 40, y - 80),
+                            new Point(x + 80, y),
+                            new Point(x + 40, y + 80),
+                            new Point(x - 40, y + 80),
+                            new Point(x - 80, y)
+                        }
+                    };
                     paintSurface.Children.Add(newHexagon);
+                    break;
+                case ToolType.Arrow:
+                    Polygon newArrow = new Polygon
+                    {
+                        Stroke = new SolidColorBrush(toolColor),
+                        StrokeThickness = toolSize,
+                        Points = new PointCollection {
+                            new Point(x - 80, y - 40),
+                            new Point(x + 40, y - 40),
+                            new Point(x + 40, y - 80),
+                            new Point(x + 120, y),
+                            new Point(x + 40, y + 80),
+                            new Point(x + 40, y + 40),
+                            new Point(x - 80, y + 40),
+                        }
+                    };
+                    paintSurface.Children.Add(newArrow);
+                    break;
+                case ToolType.Tree:
+                    Rectangle treeTrunk = new Rectangle
+                    {
+                        Fill = Brushes.SaddleBrown,
+                        Width = 50,
+                        Height = 100,
+                        Margin = new Thickness(x - 25, y + 200, 0, 0)
+                    };
+
+                    Polygon treeTop = new Polygon
+                    {
+                        Fill = Brushes.Green,
+                        Stroke = Brushes.DarkGreen,
+                        StrokeThickness = 2,
+                        Points = new PointCollection
+                        {
+                            new Point(x, y - 100),
+                            new Point(x - 75, y + 200),
+                            new Point(x + 75, y + 200)
+                        }
+                    };
+                    Ellipse ball1 = new Ellipse
+                    {
+                        Fill = Brushes.Red,
+                        Width = 20,
+                        Height = 20,
+                        Margin = new Thickness(x - 5, y, 0, 0)
+                    };
+                    Ellipse ball2 = new Ellipse
+                    {
+                        Fill = Brushes.Blue,
+                        Width = 20,
+                        Height = 20,
+                        Margin = new Thickness(x - 40, y + 120, 0, 0)
+                    };
+                    Ellipse ball3 = new Ellipse
+                    {
+                        Fill = Brushes.Purple,
+                        Width = 20,
+                        Height = 20,
+                        Margin = new Thickness(x + 15, y + 150, 0, 0)
+                    };
+                    Ellipse ball4 = new Ellipse
+                    {
+                        Fill = Brushes.Yellow,
+                        Width = 20,
+                        Height = 20,
+                        Margin = new Thickness(x + 5, y + 100, 0, 0)
+                    };
+                    Polygon star = new Polygon
+                    {
+                        Fill = Brushes.Yellow,
+                        Stroke = Brushes.Yellow,
+                        StrokeThickness = 2,
+                        Points = new PointCollection
+                        {
+                            new Point(x, y - 160),
+                            new Point(x - 10, y - 110),
+                            new Point(x - 30, y - 110),
+                            new Point(x - 15, y - 85),
+                            new Point(x - 20, y - 60),
+                            new Point(x, y - 75),
+                            new Point(x + 20, y - 60),
+                            new Point(x + 15, y - 85),
+                            new Point(x + 30, y - 110),
+                            new Point(x + 10, y - 110)
+                        }
+                    };
+                    paintSurface.Children.Add(treeTrunk);
+                    paintSurface.Children.Add(treeTop);
+                    paintSurface.Children.Add(ball1);
+                    paintSurface.Children.Add(ball2);
+                    paintSurface.Children.Add(ball3);
+                    paintSurface.Children.Add(ball4);
+                    paintSurface.Children.Add(star);
                     break;
             }
         }
@@ -307,7 +423,7 @@ namespace Painter
 
                     if (!mouseUp && selectedLine != null && e.LeftButton == MouseButtonState.Pressed)
                     {
-                        
+
                         if (isEditingStartPoint)
                         {
                             selectedLine.X1 = currentMousePosition.X;
@@ -322,7 +438,7 @@ namespace Painter
                     break;
                 case ToolType.Ellipse:
                 case ToolType.Circle:
-                    if (!mouseUp && newEllipse!= null && e.LeftButton == MouseButtonState.Pressed)
+                    if (!mouseUp && newEllipse != null && e.LeftButton == MouseButtonState.Pressed)
                     {
                         paintSurface.Cursor = Cursors.SizeAll;
                         newEllipse.Width = Math.Abs(currentMousePosition.X - newEllipse.Margin.Left);
@@ -432,8 +548,20 @@ namespace Painter
                         selectedTool = ToolType.Square;
                         paintSurface.Cursor = Cursors.Cross;
                         break;
+                    case "triangleButton":
+                        selectedTool = ToolType.Triangle;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
                     case "hexagonButton":
                         selectedTool = ToolType.Hexagon;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "arrowButton":
+                        selectedTool = ToolType.Arrow;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "treeButton":
+                        selectedTool = ToolType.Tree;
                         paintSurface.Cursor = Cursors.Cross;
                         break;
                 }
