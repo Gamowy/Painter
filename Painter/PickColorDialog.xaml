@@ -42,28 +42,28 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Rectangle x:Name="colorViewer" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3"  Width="80" Height="80" Fill="Black"/>
+        <Rectangle x:Name="colorViewer" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3"  Width="80" Height="80" Fill="Black" Stroke="Black"/>
         
         <Label Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right">R</Label>
-        <TextBox Name="redTextbox" Grid.Column="2" Grid.Row="0" MaxLength="10" VerticalAlignment="Center"/>
+        <TextBox Name="redTextbox" Grid.Column="2" Grid.Row="0" MaxLength="3" VerticalAlignment="Center" PreviewTextInput="RgbTextBoxValidation" TextChanged="rgbTextboxChanged"/>
         <Label Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right">G</Label>
-        <TextBox Name="greenTextBox" Grid.Column="2" Grid.Row="1" MaxLength="10" VerticalAlignment="Center"/>
+        <TextBox Name="greenTextbox" Grid.Column="2" Grid.Row="1" MaxLength="3" VerticalAlignment="Center" PreviewTextInput="RgbTextBoxValidation" TextChanged="rgbTextboxChanged"/>
         <Label Grid.Column="1" Grid.Row="2" HorizontalAlignment="Right">B</Label>
-        <TextBox Name="blueTextBox" Grid.Column="2" Grid.Row="2" MaxLength="10" VerticalAlignment="Center"/>
+        <TextBox Name="blueTextbox" Grid.Column="2" Grid.Row="2" MaxLength="3" VerticalAlignment="Center" PreviewTextInput="RgbTextBoxValidation" TextChanged="rgbTextboxChanged"/>
 
         <Label Grid.Column="3" Grid.Row="0" HorizontalAlignment="Right">H</Label>
-        <TextBox Name="hueTextbox" Grid.Column="4" Grid.Row="0" MaxLength="10" VerticalAlignment="Center"/>
+        <TextBox Name="hueTextbox" Grid.Column="4" Grid.Row="0" MaxLength="8" VerticalAlignment="Center" PreviewTextInput="HsvTextBoxValidation" TextChanged="hsvTextBoxChanged"/>
         <Label Grid.Column="3" Grid.Row="1" HorizontalAlignment="Right">S</Label>
-        <TextBox Name="saturationTextBox" Grid.Column="4" Grid.Row="1" MaxLength="10" VerticalAlignment="Center"/>
+        <TextBox Name="saturationTextbox" Grid.Column="4" Grid.Row="1" MaxLength="8" VerticalAlignment="Center" PreviewTextInput="HsvTextBoxValidation" TextChanged="hsvTextBoxChanged"/>
         <Label Grid.Column="3" Grid.Row="2" HorizontalAlignment="Right">V</Label>
-        <TextBox Name="valueTextBox" Grid.Column="4" Grid.Row="2" MaxLength="10" VerticalAlignment="Center"/>
+        <TextBox Name="valueTextbox" Grid.Column="4" Grid.Row="2" MaxLength="8" VerticalAlignment="Center" PreviewTextInput="HsvTextBoxValidation" TextChanged="hsvTextBoxChanged"/>
 
         
 
         <!-- Accept or Cancel -->
         <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Name="okButton" IsDefault="True" Click="okButton_Click">OK</Button>
-            <Button Name="cancelButton" IsCancel="True" Click="cancelButton_Click">Anuluj</Button>
+            <Button Name="okButton" IsDefault="True">OK</Button>
+            <Button Name="cancelButton" IsCancel="True">Anuluj</Button>
         </StackPanel>
     </Grid >
 </Window>

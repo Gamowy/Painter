@@ -109,9 +109,9 @@
                         </StackPanel>
                     </ToggleButton>
                     <Separator/>
-                    <Label>Kolor: </Label>
+                    <Label>Kolor:</Label>
                     <Button x:Name="colorButton" Click="ColorButton_Click" Background="Black" BorderBrush="Black" BorderThickness="1" Width="30" Height="30"/>
-                    <Label>Rozmiar: </Label>
+                    <Label>Rozmiar:</Label>
                     <ComboBox x:Name="sizeComboBox"/>
                 </ToolBar>
             </ToolBarTray>

@@ -41,10 +41,10 @@
         </Grid.RowDefinitions>
 
         <Label Grid.Column="0" Grid.Row="0">Szerokość płótna</Label>
-        <TextBox Name="canvasWidthTextBox" Grid.Column="1" Grid.Row="0" PreviewTextInput="NumberValidation" />
+        <TextBox Name="canvasWidthTextBox" Grid.Column="1" Grid.Row="0" PreviewTextInput="NumberValidation" TextChanged="NumberValidation"/>
 
         <Label Grid.Column="0" Grid.Row="1">Wysokość płótna</Label>
-        <TextBox Name="canvasHeightTextBox" Grid.Column="1" Grid.Row="1" PreviewTextInput="NumberValidation"/>
+        <TextBox Name="canvasHeightTextBox" Grid.Column="1" Grid.Row="1" PreviewTextInput="NumberValidation" TextChanged="NumberValidation"/>
 
         <!-- Accept or Cancel -->
         <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">

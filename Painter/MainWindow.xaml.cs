@@ -47,6 +47,8 @@ namespace Painter
 
         ToolType selectedTool; // Currently selected tool
         Color toolColor; // Color for all tools
+
+        PickColorDialog? colorDialog; // Dialog for selecting tool color
         int toolSize
         {
             get
@@ -578,11 +580,17 @@ namespace Painter
 
         private void ColorButton_Click(object sender, RoutedEventArgs e)
         {
-            PickColorDialog dialog = new PickColorDialog(toolColor);
-            bool? result = dialog.ShowDialog();
-            if (result == true)
+            if (colorDialog == null)
             {
-                toolColor = dialog.ColorViewerColor;
+                colorDialog = new PickColorDialog(toolColor);
+                colorDialog.Owner = this;
+                colorDialog.Closed += (sender, args) => colorDialog = null;
+                colorDialog.Show();
+                colorDialog.Focus();
+            }
+            else
+            {
+                colorDialog.Focus();
             }
         }
 
@@ -607,7 +615,7 @@ namespace Painter
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 MessageBox.Show("Wystąpił błąd podczas zapisywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
                 paintSurface.Children.Clear();
@@ -641,7 +649,7 @@ namespace Painter
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 MessageBox.Show("Wystąpił błąd podczas odczytywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
                 paintSurface.Children.Clear();
@@ -710,7 +718,7 @@ namespace Painter
                     paintSurface.Effect = dropShadow;
                 }
             }
-            catch (Exception)
+            catch
             {
                 MessageBox.Show("Wystąpił błąd podczas zapisywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
                 paintSurface.Children.Clear();
@@ -745,7 +753,7 @@ namespace Painter
                     paintSurface.Background = new ImageBrush(image);
                 }
             }
-            catch (Exception)
+            catch
             {
                 MessageBox.Show("Wystąpił błąd podczas odczytywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
                 paintSurface.Children.Clear();
@@ -764,21 +772,31 @@ namespace Painter
         }
         private void ResizeCanvas_Click(object sender, RoutedEventArgs e)
         {
-            resetTools();
-            var dialog = new ResizeCanvasDialog(paintSurface.Width, paintSurface.Height);
-            bool? result = dialog.ShowDialog();
-            if (result == true)
+            try
             {
-                if (MessageBox.Show("Zmiana rozmiaru płótna spowoduje wyczyszczenie go.\nCzy chcesz kontynuować?", "Zmiana rozmiaru płótna",
-                    MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                resetTools();
+                var dialog = new ResizeCanvasDialog(paintSurface.Width, paintSurface.Height);
+                dialog.Owner = this;
+                bool? result = dialog.ShowDialog();
+                if (result == true)
                 {
-                    // Clear and resize canvas
-                    paintSurface.Children.Clear();
-                    canvasStraightLines.Clear();
-                    paintSurface.Background = new SolidColorBrush(Colors.White);
-                    paintSurface.Width = dialog.CanvasWidth;
-                    paintSurface.Height = dialog.CanvasHeight;
+                    if (MessageBox.Show("Zmiana rozmiaru płótna spowoduje wyczyszczenie go.\nCzy chcesz kontynuować?", "Zmiana rozmiaru płótna",
+                        MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                    {
+                        // Clear and resize canvas
+                        paintSurface.Children.Clear();
+                        canvasStraightLines.Clear();
+                        paintSurface.Background = new SolidColorBrush(Colors.White);
+                        paintSurface.Width = dialog.CanvasWidth;
+                        paintSurface.Height = dialog.CanvasHeight;
+                    }
                 }
+            }
+            catch
+            {
+                MessageBox.Show("Wystąpił błąd podczas zmiany rozmiaru płótna", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+                paintSurface.Children.Clear();
+                paintSurface.Background = new SolidColorBrush(Colors.White);
             }
         }
 

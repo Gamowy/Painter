@@ -9,6 +9,8 @@ namespace Painter
     /// </summary>
     public partial class ResizeCanvasDialog : Window
     {
+        Regex inputRegex = new Regex("[^0-9]+");
+
         public ResizeCanvasDialog(double canvasWidth, double canvasHeight)
         {
             InitializeComponent();
@@ -36,8 +38,28 @@ namespace Painter
         }
         private void NumberValidation(object sender, TextCompositionEventArgs e)
         {
-            Regex regex = new Regex("[^0-9]+");
-            e.Handled = regex.IsMatch(e.Text);
+            e.Handled = inputRegex.IsMatch(e.Text);
+        }
+
+        private void NumberValidation(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (inputRegex.IsMatch(canvasWidthTextBox.Text))
+                {
+                    canvasWidthTextBox.Text = "";
+                    throw new ArgumentException();
+                }
+                if (inputRegex.IsMatch(canvasHeightTextBox.Text))
+                {
+                    canvasHeightTextBox.Text = "";
+                    throw new ArgumentException();
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Wprowadzono nieprawidłową wartość dla rozmiaru płótna!", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         public int CanvasWidth
@@ -49,5 +71,7 @@ namespace Painter
         {
             get { return int.Parse(canvasHeightTextBox.Text); }
         }
+
+
     }
 }
