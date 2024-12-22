@@ -71,7 +71,7 @@ namespace Painter
             paintSurface.Height = 600;
             selectedTool = ToolType.Brush;
             brushButton.IsChecked = true;
-            SetToolColor(Colors.Orange);
+            SetToolColor(Colors.Black);
 
             // Makes menu items align to right
             var menuDropAlignmentField = typeof(SystemParameters).GetField("_menuDropAlignment", BindingFlags.NonPublic | BindingFlags.Static);
@@ -402,13 +402,15 @@ namespace Painter
                 case ToolType.Brush:
                     if (!mouseUp && e.LeftButton == MouseButtonState.Pressed)
                     {
-                        Line line = new Line();
-                        line.Stroke = new SolidColorBrush(toolColor);
-                        line.StrokeThickness = toolSize;
-                        line.X1 = mouseDownPoint.X;
-                        line.Y1 = mouseDownPoint.Y;
-                        line.X2 = e.GetPosition(paintSurface).X;
-                        line.Y2 = e.GetPosition(paintSurface).Y;
+                        Line line = new Line
+                        {
+                            Stroke = new SolidColorBrush(toolColor),
+                            StrokeThickness = toolSize,
+                            X1 = mouseDownPoint.X,
+                            Y1 = mouseDownPoint.Y,
+                            X2 = e.GetPosition(paintSurface).X,
+                            Y2 = e.GetPosition(paintSurface).Y,
+                        };
                         mouseDownPoint = e.GetPosition(paintSurface);
                         paintSurface.Children.Add(line);
                     }
@@ -584,6 +586,13 @@ namespace Painter
             {
                 colorDialog = new PickColorDialog(toolColor);
                 colorDialog.Owner = this;
+                colorDialog.Closing += (sender, args) =>
+                {
+                    if (colorDialog.resultOK)
+                    {
+                        SetToolColor(colorDialog.ColorViewerColor);
+                    }
+                };
                 colorDialog.Closed += (sender, args) => colorDialog = null;
                 colorDialog.Show();
                 colorDialog.Focus();
@@ -663,7 +672,7 @@ namespace Painter
             try
             {
                 var dialog = new Microsoft.Win32.SaveFileDialog();
-                dialog.Filter = "Plik PNG (*.png)|*.png|Plik JPG (*.jpg)|*.jpg|Plik GIF (*.gif)|*.gif|Plik BMP (*.bmp)|*.bmp|Plik TIFF (*.tiff)|*.tiff||Wszystkie pliki (*.*)|*.*";
+                dialog.Filter = "Plik PNG (*.png)|*.png|Plik JPG (*.jpg)|*.jpg|Plik GIF (*.gif)|*.gif|Plik BMP (*.bmp)|*.bmp|Plik TIFF (*.tiff)|*.tiff|Wszystkie pliki (*.*)|*.*";
                 dialog.RestoreDirectory = true;
                 bool? result = dialog.ShowDialog();
                 if (result == true)

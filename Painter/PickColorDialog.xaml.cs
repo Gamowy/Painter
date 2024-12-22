@@ -51,10 +51,12 @@ namespace Painter
                 _colorViewerColor = value;
             }
         }
+       
         Regex rgbValueRegex = new Regex("[0-9]{1,3}");
         Regex hsvValueRegex = new Regex("^\\d*\\.?\\d*$");
+        public bool resultOK = false;
         bool valueUpdateFlag = false;
-
+        
         public PickColorDialog(Color toolColor)
         {
             InitializeComponent();
@@ -287,11 +289,12 @@ namespace Painter
 
         private void okButton_Click(object sender, RoutedEventArgs e)
         {
-
+            resultOK = true;
+            Close();
         }
         private void cancelButton_Click(object sender, RoutedEventArgs e)
         {
-
+            Close();
         }
     }
 }

@@ -71,7 +71,5 @@ namespace Painter
         {
             get { return int.Parse(canvasHeightTextBox.Text); }
         }
-
-
     }
 }
