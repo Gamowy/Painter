@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace Painter
 {
@@ -20,9 +9,13 @@ namespace Painter
     /// </summary>
     public partial class ResizeCanvasDialog : Window
     {
-        public ResizeCanvasDialog()
+        public ResizeCanvasDialog(double canvasWidth, double canvasHeight)
         {
             InitializeComponent();
+            canvasWidthTextBox.Text = canvasWidth.ToString();
+            canvasHeightTextBox.Text = canvasHeight.ToString();
+            canvasWidthTextBox.Select(canvasWidthTextBox.Text.Length, 0);
+            canvasHeightTextBox.Select(canvasHeightTextBox.Text.Length, 0);
         }
 
         private void okButton_Click(object sender, RoutedEventArgs e)
@@ -52,7 +45,7 @@ namespace Painter
             get { return int.Parse(canvasWidthTextBox.Text); }
         }
 
-        public int CanvasHeight 
+        public int CanvasHeight
         {
             get { return int.Parse(canvasHeightTextBox.Text); }
         }

@@ -40,7 +40,6 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <!-- Left,Top,Right,Bottom margins-->
         <Label Grid.Column="0" Grid.Row="0">Szerokość płótna</Label>
         <TextBox Name="canvasWidthTextBox" Grid.Column="1" Grid.Row="0" PreviewTextInput="NumberValidation" />
 

@@ -46,7 +46,7 @@ namespace Painter
         Polyline? newPolyline = null;
 
         ToolType selectedTool; // Currently selected tool
-        Color toolColor = Colors.Black; // Color for all tools
+        Color toolColor; // Color for all tools
         int toolSize
         {
             get
@@ -69,6 +69,7 @@ namespace Painter
             paintSurface.Height = 600;
             selectedTool = ToolType.Brush;
             brushButton.IsChecked = true;
+            SetToolColor(Colors.Orange);
 
             // Makes menu items align to right
             var menuDropAlignmentField = typeof(SystemParameters).GetField("_menuDropAlignment", BindingFlags.NonPublic | BindingFlags.Static);
@@ -157,6 +158,12 @@ namespace Painter
             {
                 line.Effect = null;
             }
+        }
+
+        private void SetToolColor(Color color)
+        {
+            toolColor = color;
+            colorButton.Background = new SolidColorBrush(color);
         }
 
         #region Canvas events
@@ -569,6 +576,16 @@ namespace Painter
             }
         }
 
+        private void ColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            PickColorDialog dialog = new PickColorDialog(toolColor);
+            bool? result = dialog.ShowDialog();
+            if (result == true)
+            {
+                toolColor = dialog.ColorViewerColor;
+            }
+        }
+
         #endregion
 
         #region Menu events
@@ -748,7 +765,7 @@ namespace Painter
         private void ResizeCanvas_Click(object sender, RoutedEventArgs e)
         {
             resetTools();
-            var dialog = new ResizeCanvasDialog();
+            var dialog = new ResizeCanvasDialog(paintSurface.Width, paintSurface.Height);
             bool? result = dialog.ShowDialog();
             if (result == true)
             {
