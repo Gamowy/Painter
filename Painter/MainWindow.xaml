@@ -6,6 +6,7 @@
         mc:Ignorable="d"
         Title="Painter" Background="#2f2f2f"
         WindowStartupLocation="CenterScreen"
+        Icon="icon.ico"
         >
     <DockPanel>
         <Grid DockPanel.Dock="Top">
@@ -23,6 +24,10 @@
                 <MenuItem Header="_Edytuj">
                     <MenuItem Header="_Wyczyść płótno" Click="ClearCanvas_Click"/>
                     <MenuItem Header="_Rozmiar płótna..." Click="ResizeCanvas_Click"/>
+                </MenuItem>
+                <MenuItem Header="_Filtry">
+                    <MenuItem Header="_Sobel" Click="SobelFilter_Click"/>
+                    <MenuItem Header="_Filtr macierzowy..."/>
                 </MenuItem>
                 <MenuItem Header="_Pomoc">
                     <MenuItem Header="O programie" Click="About_Click"/>
@@ -109,10 +114,10 @@
                         </StackPanel>
                     </ToggleButton>
                     <Separator/>
-                    <Label>Kolor:</Label>
-                    <Button x:Name="colorButton" Click="ColorButton_Click" Background="Black" BorderBrush="Black" BorderThickness="1" Width="30" Height="30"/>
-                    <Label>Rozmiar:</Label>
-                    <ComboBox x:Name="sizeComboBox"/>
+                    <Label HorizontalAlignment="Center" VerticalAlignment="Center">Kolor:</Label>
+                    <Button x:Name="colorButton" Click="ColorButton_Click" Background="Black" BorderBrush="Black" BorderThickness="1" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Label HorizontalAlignment="Center" VerticalAlignment="Center">Rozmiar:</Label>
+                    <ComboBox x:Name="sizeComboBox" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </ToolBar>
             </ToolBarTray>
         </Grid>

@@ -7,8 +7,9 @@
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        WindowStartupLocation="CenterScreen" 
-        FocusManager.FocusedElement="{Binding ElementName=canvasWidthTextBox}">
+        WindowStartupLocation="CenterScreen"
+        Icon="icon.ico"
+        FocusManager.FocusedElement="{Binding ElementName=redTextbox}">
     <Grid Margin="10">
         <Grid.Resources>
             <!-- Default settings for controls -->

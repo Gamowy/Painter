@@ -8,6 +8,7 @@
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterScreen" 
+        Icon="icon.ico"
         FocusManager.FocusedElement="{Binding ElementName=canvasWidthTextBox}">
     <Grid Margin="10">
         <Grid.Resources>

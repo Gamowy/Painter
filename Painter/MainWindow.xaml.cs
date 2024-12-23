@@ -1,5 +1,9 @@
-﻿using System.IO;
+﻿using Emgu.CV;
+using Emgu.CV.Structure;
+using System.IO;
+using System.IO.Pipes;
 using System.Reflection;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -9,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Painter
 {
@@ -41,7 +46,7 @@ namespace Painter
         Line? selectedLine = null; // Stores the selected line
         bool isEditingStartPoint = false; // Track which point is being edited
 
-        Ellipse? newEllipse = null;
+        System.Windows.Shapes.Ellipse? newEllipse = null;
         Rectangle? newRect = null;
         Polyline? newPolyline = null;
 
@@ -183,7 +188,7 @@ namespace Painter
             switch (selectedTool)
             {
                 case ToolType.Point:
-                    Ellipse ellipse = new Ellipse();
+                    System.Windows.Shapes.Ellipse ellipse = new System.Windows.Shapes.Ellipse();
                     ellipse.Fill = new SolidColorBrush(toolColor);
                     ellipse.Width = toolSize;
                     ellipse.Height = toolSize;
@@ -252,7 +257,7 @@ namespace Painter
                     break;
                 case ToolType.Ellipse:
                 case ToolType.Circle:
-                    newEllipse = new Ellipse();
+                    newEllipse = new System.Windows.Shapes.Ellipse();
                     newEllipse.Stroke = new SolidColorBrush(toolColor);
                     newEllipse.StrokeThickness = toolSize;
                     newEllipse.Width = toolSize;
@@ -275,7 +280,7 @@ namespace Painter
                     {
                         Stroke = new SolidColorBrush(toolColor),
                         StrokeThickness = toolSize,
-                        Points = new PointCollection {
+                        Points = new System.Windows.Media.PointCollection {
                             new Point(x, y - 80),
                             new Point(x + 80, y + 80),
                             new Point(x - 80, y + 80)
@@ -288,7 +293,7 @@ namespace Painter
                     {
                         Stroke = new SolidColorBrush(toolColor),
                         StrokeThickness = toolSize,
-                        Points = new PointCollection {
+                        Points = new System.Windows.Media.PointCollection {
                             new Point(x - 40, y - 80),
                             new Point(x + 40, y - 80),
                             new Point(x + 80, y),
@@ -304,7 +309,7 @@ namespace Painter
                     {
                         Stroke = new SolidColorBrush(toolColor),
                         StrokeThickness = toolSize,
-                        Points = new PointCollection {
+                        Points = new System.Windows.Media.PointCollection {
                             new Point(x - 80, y - 40),
                             new Point(x + 40, y - 40),
                             new Point(x + 40, y - 80),
@@ -330,35 +335,35 @@ namespace Painter
                         Fill = Brushes.Green,
                         Stroke = Brushes.DarkGreen,
                         StrokeThickness = 2,
-                        Points = new PointCollection
+                        Points = new System.Windows.Media.PointCollection
                         {
                             new Point(x, y - 100),
                             new Point(x - 75, y + 200),
                             new Point(x + 75, y + 200)
                         }
                     };
-                    Ellipse ball1 = new Ellipse
+                    System.Windows.Shapes.Ellipse ball1 = new System.Windows.Shapes.Ellipse
                     {
                         Fill = Brushes.Red,
                         Width = 20,
                         Height = 20,
                         Margin = new Thickness(x - 5, y, 0, 0)
                     };
-                    Ellipse ball2 = new Ellipse
+                    System.Windows.Shapes.Ellipse ball2 = new System.Windows.Shapes.Ellipse
                     {
                         Fill = Brushes.Blue,
                         Width = 20,
                         Height = 20,
                         Margin = new Thickness(x - 40, y + 120, 0, 0)
                     };
-                    Ellipse ball3 = new Ellipse
+                    System.Windows.Shapes.Ellipse ball3 = new System.Windows.Shapes.Ellipse
                     {
                         Fill = Brushes.Purple,
                         Width = 20,
                         Height = 20,
                         Margin = new Thickness(x + 15, y + 150, 0, 0)
                     };
-                    Ellipse ball4 = new Ellipse
+                    System.Windows.Shapes.Ellipse ball4 = new System.Windows.Shapes.Ellipse
                     {
                         Fill = Brushes.Yellow,
                         Width = 20,
@@ -370,7 +375,7 @@ namespace Painter
                         Fill = Brushes.Yellow,
                         Stroke = Brushes.Yellow,
                         StrokeThickness = 2,
-                        Points = new PointCollection
+                        Points = new System.Windows.Media.PointCollection
                         {
                             new Point(x, y - 160),
                             new Point(x - 10, y - 110),
@@ -752,7 +757,6 @@ namespace Painter
                         image.BeginInit();
                         image.CacheOption = BitmapCacheOption.OnLoad;
                         image.StreamSource = fileStream;
-
                         image.EndInit();
                     }
                     paintSurface.Width = image.Width;
@@ -806,6 +810,61 @@ namespace Painter
                 MessageBox.Show("Wystąpił błąd podczas zmiany rozmiaru płótna", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
                 paintSurface.Children.Clear();
                 paintSurface.Background = new SolidColorBrush(Colors.White);
+            }
+        }
+        private void SobelFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Zastosować filtr sobel na zawartości płótna?", "Filtr sobel",
+                 MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                // Create bitmap from canvas
+                paintSurface.Effect = null;
+                paintSurface.Measure(new Size((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight));
+                paintSurface.Arrange(new Rect(new Size((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight)));
+                RenderTargetBitmap rtb = new RenderTargetBitmap((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+                VisualBrush sourceBrush = new VisualBrush(paintSurface);
+                DrawingVisual drawingVisual = new DrawingVisual();
+                DrawingContext drawingContext = drawingVisual.RenderOpen();
+                using (drawingContext)
+                {
+                    drawingContext.DrawRectangle(sourceBrush, null, new Rect(new Point(0, 0), new Point(paintSurface.ActualWidth, paintSurface.ActualHeight)));
+                }
+                rtb.Render(drawingVisual);
+
+                // Save temp file to later load it using EmguCV
+                BitmapEncoder encoder = new BmpBitmapEncoder();
+                rtb.Render(drawingVisual);
+                encoder.Frames.Add(BitmapFrame.Create(rtb));  
+                using(var filestream = File.Create("temp.bmp"))
+                {
+                    encoder.Save(filestream);
+                }
+
+                // Load temp file using EmguCV, then delete it
+                Image<Emgu.CV.Structure.Rgb, byte> image = new Image<Emgu.CV.Structure.Rgb, byte>("temp.bmp");
+                
+
+                // Apply sobel filter to image
+                Image<Gray, float> grayImage = image.Convert<Gray, float>();
+                Image<Gray, float> sobelImage = grayImage.Sobel(0, 1, 3);
+
+                // Save to temp file again
+                sobelImage.Save("temp.bmp");
+
+                // Load back to canvas
+                BitmapImage tempImage = new BitmapImage();
+                using (var fileStream = File.OpenRead("temp.bmp"))
+                {
+                    tempImage.BeginInit();
+                    tempImage.CacheOption = BitmapCacheOption.OnLoad;
+                    tempImage.StreamSource = fileStream;
+                    tempImage.EndInit();
+                }
+                paintSurface.Width = tempImage.Width;
+                paintSurface.Height = tempImage.Height;
+                paintSurface.Children.Clear();
+                canvasStraightLines.Clear();
+                paintSurface.Background = new ImageBrush(tempImage);
             }
         }
 
