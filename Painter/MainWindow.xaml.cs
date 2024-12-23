@@ -33,7 +33,6 @@ namespace Painter
         Arrow,
         Tree
     }
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -611,66 +610,6 @@ namespace Painter
         #endregion
 
         #region Menu events
-        private void SaveCanvas_Click(object sender, RoutedEventArgs e)
-        {
-            resetTools();
-            try
-            {
-                var dialog = new Microsoft.Win32.SaveFileDialog();
-                dialog.Filter = "Plik painter (*pnt)|*.pnt|Wszystkie pliki (*.*)|*.*";
-                dialog.RestoreDirectory = true;
-                bool? result = dialog.ShowDialog();
-                if (result == true)
-                {
-                    // Save file
-                    using (var fileStream = File.Create(dialog.FileName))
-                    {
-                        XamlWriter.Save(paintSurface, fileStream);
-                    }
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Wystąpił błąd podczas zapisywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
-                paintSurface.Children.Clear();
-                paintSurface.Background = new SolidColorBrush(Colors.White);
-            }
-        }
-
-        private void LoadToCanvas_Click(object sender, RoutedEventArgs e)
-        {
-            resetTools();
-            try
-            {
-                var dialog = new Microsoft.Win32.OpenFileDialog();
-                dialog.Filter = "Plik painter (*pnt)|*.pnt|Wszystkie pliki (*.*)|*.*";
-                dialog.RestoreDirectory = true;
-                bool? result = dialog.ShowDialog();
-                if (result == true)
-                {
-                    Canvas savedCanvas;
-                    using (var fileStream = File.OpenRead(dialog.FileName))
-                    {
-                        savedCanvas = (Canvas)XamlReader.Load(fileStream);
-                    }
-                    var parent = paintSurface.Parent as ScrollViewer;
-                    if (parent != null)
-                    {
-                        parent.Content = savedCanvas;
-                        paintSurface = savedCanvas;
-                        canvasStraightLines.Clear();
-                        attachCanvas(paintSurface);
-                    }
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Wystąpił błąd podczas odczytywania pliku", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
-                paintSurface.Children.Clear();
-                paintSurface.Background = new SolidColorBrush(Colors.White);
-            }
-        }
-
         private void SaveCanvasToImg_Click(object sender, RoutedEventArgs e)
         {
             resetTools();
@@ -812,38 +751,43 @@ namespace Painter
                 paintSurface.Background = new SolidColorBrush(Colors.White);
             }
         }
+
+        // Creates temporary file with canvas content to use it with EmguCV
+        private void CreateBgTempFile()
+        {
+            // Create bitmap from canvas
+            paintSurface.Effect = null;
+            paintSurface.Measure(new Size((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight));
+            paintSurface.Arrange(new Rect(new Size((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight)));
+            RenderTargetBitmap rtb = new RenderTargetBitmap((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+            VisualBrush sourceBrush = new VisualBrush(paintSurface);
+            DrawingVisual drawingVisual = new DrawingVisual();
+            DrawingContext drawingContext = drawingVisual.RenderOpen();
+            using (drawingContext)
+            {
+                drawingContext.DrawRectangle(sourceBrush, null, new Rect(new Point(0, 0), new Point(paintSurface.ActualWidth, paintSurface.ActualHeight)));
+            }
+            rtb.Render(drawingVisual);
+
+            // Save temp file to later load it using EmguCV
+            BitmapEncoder encoder = new BmpBitmapEncoder();
+            rtb.Render(drawingVisual);
+            encoder.Frames.Add(BitmapFrame.Create(rtb));
+            using (var filestream = File.Create("temp.bmp"))
+            {
+                encoder.Save(filestream);
+            }
+        }
+
         private void SobelFilter_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Zastosować filtr sobel na zawartości płótna?", "Filtr sobel",
                  MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                // Create bitmap from canvas
-                paintSurface.Effect = null;
-                paintSurface.Measure(new Size((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight));
-                paintSurface.Arrange(new Rect(new Size((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight)));
-                RenderTargetBitmap rtb = new RenderTargetBitmap((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight, 96, 96, PixelFormats.Pbgra32);
-                VisualBrush sourceBrush = new VisualBrush(paintSurface);
-                DrawingVisual drawingVisual = new DrawingVisual();
-                DrawingContext drawingContext = drawingVisual.RenderOpen();
-                using (drawingContext)
-                {
-                    drawingContext.DrawRectangle(sourceBrush, null, new Rect(new Point(0, 0), new Point(paintSurface.ActualWidth, paintSurface.ActualHeight)));
-                }
-                rtb.Render(drawingVisual);
-
-                // Save temp file to later load it using EmguCV
-                BitmapEncoder encoder = new BmpBitmapEncoder();
-                rtb.Render(drawingVisual);
-                encoder.Frames.Add(BitmapFrame.Create(rtb));  
-                using(var filestream = File.Create("temp.bmp"))
-                {
-                    encoder.Save(filestream);
-                }
-
+                CreateBgTempFile();
                 // Load temp file using EmguCV, then delete it
                 Image<Emgu.CV.Structure.Rgb, byte> image = new Image<Emgu.CV.Structure.Rgb, byte>("temp.bmp");
                 
-
                 // Apply sobel filter to image
                 Image<Gray, float> grayImage = image.Convert<Gray, float>();
                 Image<Gray, float> sobelImage = grayImage.Sobel(0, 1, 3);
@@ -865,6 +809,9 @@ namespace Painter
                 paintSurface.Children.Clear();
                 canvasStraightLines.Clear();
                 paintSurface.Background = new ImageBrush(tempImage);
+
+                // Delete temp file
+                File.Delete("temp.bmp");
             }
         }
 
