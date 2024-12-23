@@ -727,7 +727,7 @@ namespace Painter
             try
             {
                 resetTools();
-                var dialog = new ResizeCanvasDialog(paintSurface.Width, paintSurface.Height);
+                var dialog = new ResizeCanvasDialog((int)paintSurface.ActualWidth, (int)paintSurface.ActualHeight);
                 dialog.Owner = this;
                 bool? result = dialog.ShowDialog();
                 if (result == true)
@@ -779,21 +779,38 @@ namespace Painter
             }
         }
 
-        private void SobelFilter_Click(object sender, RoutedEventArgs e)
+        private void ApplyFilter(string filterName, string messageFilterName)
         {
-            if (MessageBox.Show("Zastosować filtr sobel na zawartości płótna?", "Filtr sobel",
-                 MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Zastosować filtr {messageFilterName} na zawartości płótna?", $"Filtr {messageFilterName}", 
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 CreateBgTempFile();
                 // Load temp file using EmguCV, then delete it
                 Image<Emgu.CV.Structure.Rgb, byte> image = new Image<Emgu.CV.Structure.Rgb, byte>("temp.bmp");
-                
-                // Apply sobel filter to image
-                Image<Gray, float> grayImage = image.Convert<Gray, float>();
-                Image<Gray, float> sobelImage = grayImage.Sobel(0, 1, 3);
 
-                // Save to temp file again
-                sobelImage.Save("temp.bmp");
+                // Apply filter to image
+                switch(filterName.ToLower())
+                {
+                    case "sobel":
+                        Image<Gray, float> graySobelImage = image.Convert<Gray, float>();
+                        Image<Gray, float> sobelImage = graySobelImage.Sobel(0, 1, 3);
+                        sobelImage.Save("temp.bmp");
+                        break;
+                    case "canny":
+                        Image<Gray, byte> grayCannyImage = image.Convert<Gray, byte>();
+                        Image<Gray, byte> cannyImage = grayCannyImage.Canny(100, 60);
+                        cannyImage.Save("temp.bmp");
+                        break;
+                    case "black and white":
+                        Image<Gray, byte> grayImage = image.Convert<Gray, byte>();
+                        grayImage.Save("temp.bmp");
+                        break;
+                    case "inverse colors":
+                        Image<Emgu.CV.Structure.Rgb, byte> inverseImage = image.Not();
+                        inverseImage.Save("temp.bmp");
+                        break;
+
+                }   
 
                 // Load back to canvas
                 BitmapImage tempImage = new BitmapImage();
@@ -812,6 +829,29 @@ namespace Painter
 
                 // Delete temp file
                 File.Delete("temp.bmp");
+            }
+        }
+
+        private void Filter_Click(object sender, RoutedEventArgs e)
+        {
+            var menuItem = sender as MenuItem;
+            if (menuItem != null)
+            {
+                switch (menuItem.Header)
+                {
+                    case "Sobel":
+                        ApplyFilter("Sobel", "sobel");
+                        break;
+                    case "Canny":
+                        ApplyFilter("Canny", "canny");
+                        break;
+                    case "Czarno-biały":
+                        ApplyFilter("Black and white", "czarno-biały");
+                        break;
+                    case "Odwróc kolory":
+                        ApplyFilter("Inverse colors", "odwrócone kolory");
+                        break;
+                }
             }
         }
 

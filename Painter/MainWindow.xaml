@@ -24,7 +24,10 @@
                     <MenuItem Header="_Rozmiar płótna..." Click="ResizeCanvas_Click"/>
                 </MenuItem>
                 <MenuItem Header="_Filtry">
-                    <MenuItem Header="_Sobel" Click="SobelFilter_Click"/>
+                    <MenuItem Header="Sobel" Click="Filter_Click"/>
+                    <MenuItem Header="Canny" Click="Filter_Click"/>
+                    <MenuItem Header="Czarno-biały" Click="Filter_Click"/>
+                    <MenuItem Header="Odwróc kolory" Click="Filter_Click"/>
                     <MenuItem Header="_Filtr macierzowy..."/>
                 </MenuItem>
                 <MenuItem Header="_Pomoc">
