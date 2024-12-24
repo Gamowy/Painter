@@ -1,0 +1,67 @@
+﻿<Window x:Class="Painter.MatrixFilterDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Filtr macierzowy"
+        MinHeight="200"
+        MinWidth="400"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterScreen"
+        Icon="icon.ico"
+        FocusManager.FocusedElement="{Binding ElementName=matrix00}" Closing="Window_Closing">
+    <Grid Margin="10">
+        <Grid.Resources>
+            <!-- Default settings for controls -->
+            <Style TargetType="{x:Type Label}">
+                <Setter Property="Margin" Value="0,3,5,5" />
+                <Setter Property="Padding" Value="0,0,0,5" />
+            </Style>
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="Margin" Value="0,0,0,5" />
+            </Style>
+            <Style TargetType="{x:Type Button}">
+                <Setter Property="Width" Value="70" />
+                <Setter Property="Height" Value="25" />
+                <Setter Property="Margin" Value="5,0,0,0" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="0.1*" />
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="0.1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+
+        <TextBox Name="matrix00" Grid.Row="0" Grid.Column="0" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix01" Grid.Row="0" Grid.Column="2" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix02" Grid.Row="0" Grid.Column="4" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix10" Grid.Row="1" Grid.Column="0" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix11" Grid.Row="1" Grid.Column="2" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix12" Grid.Row="1" Grid.Column="4" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix20" Grid.Row="2" Grid.Column="0" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix21" Grid.Row="2" Grid.Column="2" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+        <TextBox Name="matrix22" Grid.Row="2" Grid.Column="4" MaxLength="10" VerticalAlignment="Center" PreviewTextInput="InputValidation"/>
+
+        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <CheckBox Name="normalizationCheckBox" Margin="5, 0, 5, 0">Normalizuj filtr</CheckBox>
+            <CheckBox Name="grayScaleCheeckBox" Margin="5, 0, 5, 0">Zastosuj w skali szarości</CheckBox>
+        </StackPanel>
+            
+        <!-- Accept or Cancel -->
+        <StackPanel Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Name="okButton" IsDefault="True" Click="okButton_Click">OK</Button>
+            <Button Name="cancelButton" IsCancel="True" Click="cancelButton_Click">Anuluj</Button>
+        </StackPanel>
+    </Grid >
+</Window>

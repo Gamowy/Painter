@@ -28,7 +28,7 @@
                     <MenuItem Header="Canny" Click="Filter_Click"/>
                     <MenuItem Header="Czarno-biały" Click="Filter_Click"/>
                     <MenuItem Header="Odwróc kolory" Click="Filter_Click"/>
-                    <MenuItem Header="_Filtr macierzowy..."/>
+                    <MenuItem Header="Filtr macierzowy..." Click="Filter_Click"/>
                 </MenuItem>
                 <MenuItem Header="_Pomoc">
                     <MenuItem Header="O programie" Click="About_Click"/>

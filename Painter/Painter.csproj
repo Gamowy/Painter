@@ -23,12 +23,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="MatrixFilterDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="PickColorDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="MatrixFilterDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="PickColorDialog.xaml">
       <SubType>Designer</SubType>
     </Page>

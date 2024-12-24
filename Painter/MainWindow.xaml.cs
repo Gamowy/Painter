@@ -1,19 +1,16 @@
 ﻿using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using System.IO;
-using System.IO.Pipes;
 using System.Reflection;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Painter
 {
@@ -53,6 +50,9 @@ namespace Painter
         Color toolColor; // Color for all tools
 
         PickColorDialog? colorDialog; // Dialog for selecting tool color
+        MatrixFilterDialog? kernelDialog; // Dialog for selecting kernel for matrix filter
+        bool normalizeKernel = true;
+        bool applyKernelInGray = false;
         int toolSize
         {
             get
@@ -61,6 +61,7 @@ namespace Painter
 
             }
         }
+        float[,] kernel;
 
 
         System.Windows.Media.Effects.Effect dropShadow;
@@ -95,6 +96,12 @@ namespace Painter
 
             // Save canvas dropshadow for time when we need to remove it during saving to png
             dropShadow = paintSurface.Effect;
+
+            kernel = new float[3, 3] {
+                { 0, -1, 0 },
+                { -1, 5, -1 },
+                { 0, -1, 0 }
+            };
         }
 
         private void resetTools()
@@ -597,7 +604,11 @@ namespace Painter
                         SetToolColor(colorDialog.ColorViewerColor);
                     }
                 };
-                colorDialog.Closed += (sender, args) => colorDialog = null;
+                colorDialog.Closed += (sender, args) =>
+                {
+                    colorDialog = null;
+                    this.Focus();
+                };
                 colorDialog.Show();
                 colorDialog.Focus();
             }
@@ -779,17 +790,64 @@ namespace Painter
             }
         }
 
+        // Loads temporary file with canvas content after modyfing it with EmguCV
+        private void LoadBgTempFile()
+        {
+            // Load back to canvas
+            BitmapImage tempImage = new BitmapImage();
+            using (var fileStream = File.OpenRead("temp.bmp"))
+            {
+                tempImage.BeginInit();
+                tempImage.CacheOption = BitmapCacheOption.OnLoad;
+                tempImage.StreamSource = fileStream;
+                tempImage.EndInit();
+            }
+            paintSurface.Width = tempImage.Width;
+            paintSurface.Height = tempImage.Height;
+            paintSurface.Children.Clear();
+            canvasStraightLines.Clear();
+            paintSurface.Background = new ImageBrush(tempImage);
+
+            // Delete temp file
+            File.Delete("temp.bmp");
+        }
+
+        private float[,] NormalizeKernel(float[,] kernel)
+        {
+            var newKernel = new float[kernel.GetLength(0), kernel.GetLength(1)];
+            float sum = 0;
+            foreach (var item in kernel)
+            {
+                sum += item;
+
+            }
+
+            for (int i = 0; i < kernel.GetLength(0); i++)
+            {
+                for (int j = 0; j < kernel.GetLength(1); j++)
+                {
+                    newKernel[i, j] = kernel[i, j];
+                    if (sum != 0)
+                    {
+                        newKernel[i, j] /= sum;
+                    }
+                }
+            }
+            return newKernel;
+        }
+
+        // Apply chosen filter to canvas
         private void ApplyFilter(string filterName, string messageFilterName)
         {
-            if (MessageBox.Show($"Zastosować filtr {messageFilterName} na zawartości płótna?", $"Filtr {messageFilterName}", 
+            if (MessageBox.Show($"Zastosować filtr {messageFilterName} na zawartości płótna?", $"Filtr {messageFilterName}",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 CreateBgTempFile();
-                // Load temp file using EmguCV, then delete it
+                // Load temp file using EmguCV
                 Image<Emgu.CV.Structure.Rgb, byte> image = new Image<Emgu.CV.Structure.Rgb, byte>("temp.bmp");
 
                 // Apply filter to image
-                switch(filterName.ToLower())
+                switch (filterName.ToLower())
                 {
                     case "sobel":
                         Image<Gray, float> graySobelImage = image.Convert<Gray, float>();
@@ -809,26 +867,57 @@ namespace Painter
                         Image<Emgu.CV.Structure.Rgb, byte> inverseImage = image.Not();
                         inverseImage.Save("temp.bmp");
                         break;
-
-                }   
-
-                // Load back to canvas
-                BitmapImage tempImage = new BitmapImage();
-                using (var fileStream = File.OpenRead("temp.bmp"))
-                {
-                    tempImage.BeginInit();
-                    tempImage.CacheOption = BitmapCacheOption.OnLoad;
-                    tempImage.StreamSource = fileStream;
-                    tempImage.EndInit();
                 }
-                paintSurface.Width = tempImage.Width;
-                paintSurface.Height = tempImage.Height;
-                paintSurface.Children.Clear();
-                canvasStraightLines.Clear();
-                paintSurface.Background = new ImageBrush(tempImage);
+                LoadBgTempFile();
+            }
+        }
 
-                // Delete temp file
-                File.Delete("temp.bmp");
+        // Apply custom kernel filter to canvas
+        private void ApplyMatrixFilter()
+        {
+            CreateBgTempFile();
+            // Load temp file using EmguCV
+            Image<Bgr, byte> image = new Image<Bgr, byte>("temp.bmp");
+
+            if (kernelDialog == null)
+            {
+                kernelDialog = new MatrixFilterDialog(kernel, normalizeKernel, applyKernelInGray);
+                kernelDialog.Owner = this;
+                kernelDialog.Closing += (sender, args) =>
+                {
+                    normalizeKernel = kernelDialog.normalize;
+                    applyKernelInGray = kernelDialog.grayscale;
+                    if (kernelDialog.resultOK)
+                    {
+                        kernel = kernelDialog.Kernel;
+                        var filter = new ConvolutionKernelF(normalizeKernel ? NormalizeKernel(kernel) : kernel);
+                        if (applyKernelInGray)
+                        {
+                            var grayImage = image.Convert<Gray, byte>();
+                            var dst = new Mat(image.Size, DepthType.Cv8U, 1);
+                            CvInvoke.Filter2D(grayImage, dst, filter, new System.Drawing.Point(-1, -1));
+                            dst.Save("temp.bmp");
+                        }
+                        else
+                        {
+                            var dst = new Mat(image.Size, DepthType.Cv8U, 3);
+                            CvInvoke.Filter2D(image, dst, filter, new System.Drawing.Point(-1, -1));
+                            dst.Save("temp.bmp");
+                        }
+                        LoadBgTempFile();
+                    }
+                };
+                kernelDialog.Closed += (sender, args) =>
+                {
+                    kernelDialog = null;
+                    this.Focus();
+                };
+                kernelDialog.Show();
+                kernelDialog.Focus();
+            }
+            else
+            {
+                kernelDialog.Focus();
             }
         }
 
@@ -851,6 +940,9 @@ namespace Painter
                     case "Odwróc kolory":
                         ApplyFilter("Inverse colors", "odwrócone kolory");
                         break;
+                    case "Filtr macierzowy...":
+                        ApplyMatrixFilter();
+                        break;
                 }
             }
         }
@@ -862,6 +954,5 @@ namespace Painter
                 "Autor: Patryk Gamrat", "O programie", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
-
     #endregion
 }

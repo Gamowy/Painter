@@ -1,17 +1,14 @@
-﻿using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.TextFormatting;
 
 namespace Painter
 {
     public struct Rgb
     {
-        public Rgb (double red, double blue, double green)
+        public Rgb(double red, double blue, double green)
         {
             this.red = red;
             this.blue = blue;
@@ -51,16 +48,16 @@ namespace Painter
                 _colorViewerColor = value;
             }
         }
-       
+
         Regex rgbValueRegex = new Regex("[0-9]{1,3}");
         Regex hsvValueRegex = new Regex("^\\d*\\.?\\d*$");
         public bool resultOK = false;
         bool valueUpdateFlag = false;
-        
+
         public PickColorDialog(Color toolColor)
         {
             InitializeComponent();
-            ColorViewerColor = toolColor;
+            _colorViewerColor = toolColor;
             colorViewer.Fill = new SolidColorBrush(ColorViewerColor);
             setRgbTextBoxes();
             setHsvTextBoxes();
@@ -257,7 +254,7 @@ namespace Painter
                     {
                         valueTextbox.Text = "";
                     }
-                    
+
                     double hue, saturation, value;
                     if (double.TryParse(hueTextbox.Text, out hue) && double.TryParse(saturationTextbox.Text, out saturation) && double.TryParse(valueTextbox.Text, out value))
                     {
