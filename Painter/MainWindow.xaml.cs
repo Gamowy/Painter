@@ -28,7 +28,8 @@ namespace Painter
         Rectangle,
         Hexagon,
         Arrow,
-        Tree
+        Tree,
+        Eraser
     }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -403,6 +404,13 @@ namespace Painter
                     paintSurface.Children.Add(ball4);
                     paintSurface.Children.Add(star);
                     break;
+                case ToolType.Eraser:
+                    var clickedElement = e.Source as FrameworkElement;
+                    if (clickedElement != null)
+                    {
+                        paintSurface.Children.Remove(clickedElement);
+                    }
+                    break;
             }
         }
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
@@ -476,6 +484,16 @@ namespace Painter
                         newRect.Width = Math.Abs(currentMousePosition.X - newRect.Margin.Left);
                         newRect.Height = (selectedTool == ToolType.Rectangle) ? Math.Abs(currentMousePosition.Y - newRect.Margin.Top) : newRect.Width;
                         newRect.Margin = new Thickness(mouseDownPoint.X - newRect.Width / 2, mouseDownPoint.Y - newRect.Height / 2, 0, 0);
+                    }
+                    break;
+                case ToolType.Eraser:
+                    if (!mouseUp && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        var hoveredElement = e.Source as FrameworkElement;
+                        if (hoveredElement != null)
+                        {
+                            paintSurface.Children.Remove(hoveredElement);
+                        }
                     }
                     break;
             }
@@ -584,6 +602,10 @@ namespace Painter
                         break;
                     case "treeButton":
                         selectedTool = ToolType.Tree;
+                        paintSurface.Cursor = Cursors.Cross;
+                        break;
+                    case "eraserButton":
+                        selectedTool = ToolType.Eraser;
                         paintSurface.Cursor = Cursors.Cross;
                         break;
                 }
